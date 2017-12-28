@@ -322,10 +322,11 @@ if len(sys.argv) > 1:
                     exKey = flList[0].ex_key
                 else:  # Use the first Executive if unabe to find the one( due to mismath in name)
                     exKey = summary.executies[0].ex_key
-                    keys = word_tokenize(data.detail)
-                    keys = list(filter(lambda d: check_if_exists_in_list(fin_words_list, d.upper()), keys))
-                    keys = ([(stemmer.stem(d), len(list(filter(lambda k: d in k, keys)))) for d in set(keys)])
-                    dao.iTalkKeyword(keys, summary.tr_key, exKey)
+                keys = word_tokenize(data.detail)
+                keys = list(filter(lambda d: check_if_exists_in_list(fin_words_list, d.upper()), keys))
+                keys = ([(stemmer.stem(d), len(list(filter(lambda k: d in k, keys)))) for d in set(keys)])
+                dao.iManagementTalk(data.detail, summary.tr_key, exKey)
+                dao.iTalkKeyword(keys, summary.tr_key, exKey)
             for data in summary.QAList:
                 data.question = data.question.replace("\\'", "'")
                 data.answer = data.answer.replace("\\'", "'")

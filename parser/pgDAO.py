@@ -26,7 +26,7 @@ class pgDAO:
     def delete_transcripts(self, trans):
         self.openConnection()
         cur = self.myConnection.cursor()
-        tables = ['questionanswer', 'keywords', 'customkeymapscore', 'transcript_sentiment_results', 'keywords_mng_talk', 'transcripts']
+        tables = ['questionanswer', 'keywords', 'customkeymapscore', 'transcript_sentiment_results', 'keywords_mng_talk', 'mng_talk','transcripts']
         for table in tables:
             sql = "DELETE FROM " + table + " WHERE tr_key=%s"
             data = (trans.tr_key,)
@@ -111,6 +111,16 @@ class pgDAO:
              VALUES(%s, %s, %s, %s) """
             data = (tr_key, ex_key, keyword, count)
             cur.execute(sql, data)
+        self.myConnection.commit()
+        self.closeConnection()
+
+    def iManagementTalk(self, talk, tr_key, ex_key):
+        self.openConnection()
+        cur = self.myConnection.cursor()
+        sql = """INSERT INTO mng_talk(tr_key, ex_key, talk)
+            VALUES(%s, %s, %s) """
+        data = (tr_key, ex_key, talk)
+        cur.execute(sql, data)
         self.myConnection.commit()
         self.closeConnection()
 
