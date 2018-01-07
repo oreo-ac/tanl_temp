@@ -72,7 +72,7 @@ def getPercentage(part, total):
         pct = round(part / total, 2)
     return pct
 
-def parseHTML(htmlData):
+def parseHTML(htmlData, pageId):
     summary = EarningsCall()
 
     soup = BeautifulSoup(str(htmlData), 'html.parser')
@@ -101,7 +101,7 @@ def parseHTML(htmlData):
         elif str(type(child)) == "<class 'bs4.element.Tag'>":
             name, role = child.string.split("-", 1)
             callParticipant = Participant()
-            callParticipant.name = name.strip()
+            callParticipant.name = name.strip()+pageId
             callParticipant.role = role.strip()
             executies.append(callParticipant)
     # SUMMARY DATA
@@ -143,7 +143,7 @@ def parseHTML(htmlData):
         elif str(type(child)) == "<class 'bs4.element.Tag'>":
             name, company = child.string.split("-", 1)
             callParticipant = Participant()
-            callParticipant.name = name.strip()
+            callParticipant.name = name.strip()+pageId
             callParticipant.company = company.strip()
             analysts.append(callParticipant)
             # analysts.update({name.strip():company.strip()})
@@ -304,7 +304,8 @@ if len(sys.argv) > 1:
                 fileName = os.path.basename(myfile.name)
                 folderPath = os.path.dirname(myfile.name)
                 page = myfile.readlines()
-            summary = parseHTML(page)
+            reference = fileName.split("-")[0]
+            summary = parseHTML(page, reference)
             summary.id = next(iter(re.findall(r"[0-9]*", file)), None)
             summary.tr_key = dao.getTr_Key(summary)
             tr_key_temp = summary.tr_key
@@ -314,6 +315,7 @@ if len(sys.argv) > 1:
                 dao.iAnalyst(data)
             for data in summary.executies:
                 data.company = summary.company
+                #print(data.name)
                 data.ex_key = dao.getEx_Key(data)
                 dao.iExecutive(data)
             for data in summary.updates:
@@ -431,4 +433,3 @@ if len(sys.argv) > 1:
             dao.iSentiment(trans)
 else:
     print("Expects HTML file root location")
-
