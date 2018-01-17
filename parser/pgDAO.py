@@ -1,6 +1,7 @@
 import psycopg2
 import hashlib
 import json
+import datetime
 
 
 class pgDAO:
@@ -138,3 +139,39 @@ class pgDAO:
         hashKey = hashlib.sha1(
             json.dumps({"company": executive.company, "name": executive.name}, sort_keys=True).encode('utf-8')).hexdigest()
         return hashKey
+    
+    def getNas_Key(self, nasTicker):
+        hashKey = hashlib.sha1(json.dumps({"ticker": nasTicker.ticker, "source": nasTicker.source, "rating": nasTicker.rating,
+                                         "reportOn": str(datetime.date.today())},sort_keys=True).encode('utf-8')).hexdigest()
+        return hashKey
+
+    def iNasdaq_Ticker(self, nasTicker, nas_key):
+        self.openConnection()
+        cur = self.myConnection.cursor()
+        sql = """INSERT INTO nasdaq_ticker(nas_key, ticker, source, rating, reportOn)
+            VALUES(%s, %s, %s, %s, %s) """
+        data = (nas_key, nasTicker.ticker, nasTicker.source, nasTicker.rating, datetime.date.today())
+        cur.execute(sql, data)
+        self.myConnection.commit()
+        self.closeConnection()
+    
+    def iNasdaq_Report(self, report, nas_key):
+        self.openConnection()
+        cur = self.myConnection.cursor()
+        sql = """INSERT INTO nasdaq_report(nas_key, clasification, status, detail)
+            VALUES(%s, %s, %s, %s) """
+        data = (nas_key, report.clasification, report.status, report.detail)
+        cur.execute(sql, data)
+        self.myConnection.commit()
+        self.closeConnection()
+
+    def delete_nasdaq(self, nas_key):
+        self.openConnection()
+        cur = self.myConnection.cursor()
+        tables = ['nasdaq_report', 'nasdaq_ticker']
+        for table in tables:
+            sql = "DELETE FROM " + table + " WHERE nas_key=%s"
+            data = (nas_key,)
+            cur.execute(sql, data)
+        self.myConnection.commit()
+        self.closeConnection()
