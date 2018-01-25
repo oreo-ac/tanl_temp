@@ -99,6 +99,7 @@ def parseHTML(htmlData, pageId):
             if content == "Analysts":
                 break
         elif str(type(child)) == "<class 'bs4.element.Tag'>":
+            #print(child.string)
             name, role = child.string.split("-", 1)
             callParticipant = Participant()
             callParticipant.name = name.strip()+pageId
@@ -110,11 +111,13 @@ def parseHTML(htmlData, pageId):
         innerAnchor = child.find("a")
         if innerAnchor and innerAnchor != -1:
             companyStockDetail = child.text
+            print(companyStockDetail)
             # correct the regular expression
             exchange = next(iter(re.findall(r"\((.*?):*\)", companyStockDetail)), None).split(":")[0]
             stockName = next(iter(re.findall(r"\(*:(.*?)\)", companyStockDetail)), None)
             company = next(iter(re.findall(r"(.*?)\(", companyStockDetail)), None)
             quarterYearInfo = next(iter(re.findall(r"\](.*?)", companyStockDetail)), None)
+            #print(quarterYearInfo)
             if (quarterYearInfo == None or len(quarterYearInfo) <= 7):  # Q4 2017
                 quarterYearInfo = childElements[summaryIndex + 2].contents[0]
             quarter = ""
@@ -141,12 +144,15 @@ def parseHTML(htmlData, pageId):
             if content == "Operator":
                 break
         elif str(type(child)) == "<class 'bs4.element.Tag'>":
+            #print(child.string)
+            #print(type(child.string))
             name, company = child.string.split("-", 1)
             callParticipant = Participant()
             callParticipant.name = name.strip()+pageId
             callParticipant.company = company.strip()
             analysts.append(callParticipant)
             # analysts.update({name.strip():company.strip()})
+    #print(json.dumps(analysts, default=obj_dict))
     # UPDATES, QUESTION AND ANSWER
     qaSet = []
     currentIndex = index + 1
@@ -155,7 +161,7 @@ def parseHTML(htmlData, pageId):
         child = childElements[index]
         innerStrong = child.find("strong")
         if innerStrong and innerStrong != -1:
-            content = innerStrong.contents[0]
+            content = innerStrong.contents[0].strip()
             if content == "Question-and-Answer Session":
                 break
     if (index > childLength):
@@ -218,6 +224,7 @@ def parseHTML(htmlData, pageId):
                     if index == 0 and childContent["class"][0] == questionClass:
                         index = 1
                         # questionedBy = innerStrong.string
+                        #print(innerStrong)
                         questionedBy = innerStrong.string.split("-")[0].strip()
                     elif index == 2 and childContent["class"][0] == answerClass:
                         index = 3
