@@ -42,7 +42,6 @@ def hello():
     host_url = request.headers["Host"]
     return render_template("index.html", **locals())
 
-
 @app.route("/search/<string:code>/", methods=['GET'])
 def search(code):
     code_list = word_tokenize(code.lower())
@@ -112,12 +111,50 @@ def search(code):
             temp = row1 + " " + row2[2] + ": " + row2[3] + " for last 12 months"
             if temp not in result:
                 result.append(temp)
-
-
-
-
-
     return jsonify(sorted(list(set(result)), reverse=True))
+
+class searchResult:
+    def __init__(self):
+        pass
+
+
+def obj_dict(obj):
+    return obj.__dict__
+
+
+@app.route("/searchresult/<string:searchKey>/", methods=['GET'])
+def searchresult(searchKey):
+    searchKey = searchKey.lower()
+    typeKey, company, time = searchKey.split("for", 2)
+    ticker, company = company.split(":",1)
+    
+    quarter =""
+    year =""
+    if time.strip() == "last 12 months":
+        year = "2017"
+    else:
+        ivalues = [int(val) for val in time.split() if val.isdigit()]
+        year = ivalues[0]
+        values = time.split()
+        if len(values)>1:
+            quarter = values[1].strip()
+
+    searchQuery = "select tr_key from transcripts where year='"+ str(year) +"' and lower(ticker) ='" + ticker.strip() + "'"
+    if quarter !="":
+        searchQuery = searchQuery + " and lower(quarter)='" + quarter +"' "
+    if typeKey == "sentiment":
+        searchQuery ="select  sentiment, count(1) cnt from transcript_sentiment_results where tr_key in(" +  search.query + ") group by sentiment"
+    elif typeKey=="wordcloud":
+        searchQuery ="select keyword,count from keywords_mng_talk where tr_key in(" +  searchQuery + ")"
+    else:
+        searchQuery ="select keyword,count from keywords_mng_talk where tr_key in(" +  searchQuery + ")"
+    conn = get_db()
+    search_set = conn.cursor()
+    result = search_set.execute(searchQuery)
+    result = [row for row in search_set.fetchall()]
+    result = json.dumps(result, default=obj_dict)
+    return jsonify(result)
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
