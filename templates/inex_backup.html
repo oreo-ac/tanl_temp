@@ -38,7 +38,7 @@
       height: 100%;
       margin: 0px;
       border: 0;
-      /*overflow: hidden; /*  Disable scrollbars */
+      overflow: hidden; /*  Disable scrollbars */
       display: block;  /* No floating content on sides */
     }
 
@@ -105,45 +105,21 @@
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper" >
     <div class="downdown" align="center">
-      <div class=col-sm-2>
-
-      </div>
-      <div class="col-sm-8">
         <input id="searchBox" type="text" name="searchText" class="form-control" placeholder="Search..."
-        onkeyup="searchChange(this);" style="border-radius:10px; margin-top:10px;width:100%" list="searchList">
-        
+        onkeyup="searchChange(this);" style="border-radius:10px; margin-top:10px;width:70%" list="searchList">
         <div id="myDropdown" class="dropdown-content show" style="">
           
         </div>
-      </div>
-      <div class="col-sm-2" style="border-radius:10px; margin-top:7px;">
-        <span id="pieChart" onclick="selectChart('pie', this);" class="selectedChart chartoption fa fa-pie-chart" 
-                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#2F038B"></span>
-        <span id="areaChart" onclick="selectChart('area', this);" class="chartoption fa fa-area-chart" 
-                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#2F038B"></span>
-        <span id="barChart" onclick="selectChart('bar', this);" class="chartoption fa fa-bar-chart" 
-                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#2F038B"></span>
-        <span id="stackedChart" onclick="selectChart('stacked', this);" class="chartoption fa fa-bar-chart-o" 
-                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#2F038B"></span>
-        <span id="lineChart" onclick="selectChart('line', this);" class="chartoption fa fa-line-chart" 
-                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#2F038B"></span>
-      </div>
     </div>
     <br/>
-    <div class="row">
-      <div class="col-sm-3" style="width:20%">
-
-      </div>
-      <div class="col-sm-8" style="width:60%">
-          <div class="row" id="searchNotification" style="text-align: center  ">
-         
-          </div>
-      </div>
-      <div class="col-sm-2" style="width:20%">
-
-      </div>  
+    <div class="row" id="searchNotification">
+        <div class="widget">
+            <div class="header">Browser Market Share</div>
+            <div id="chart" class="chart-container">
+        
+            </div>
+        </div> 
     </div>
-    
   </div>
   <!-- /.content-wrapper -->
 
@@ -192,7 +168,6 @@
 <script src="/assets/dist/js/pages/dashboard.js"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="/assets/dist/js/demo.js"></script>
-<script src="/assets/bower_components/jquery/src/d3.min.js"></script>
 <script type="text/javascript">
 $.ready(function(){
   $(".dropdown-content").each(function(){
@@ -216,12 +191,6 @@ $.ready(function(){
         type: 'GET'
       });
   }
-  function option_click(ctl){
-    $('#myDropdown').removeClass("show");
-    $("#searchBox").val($(ctl).html())
-    searchResults($(ctl).html());
-  }
-
   function build_table_results(rows){
     temp_html = ""
     
@@ -229,120 +198,36 @@ $.ready(function(){
       temp_html = temp_html + '<a href="#" onclick="option_click(this);">' + row + '</a>'
     });
       
+    console.log(temp_html)
     $("#myDropdown").html(temp_html);
-    $('#myDropdown').addClass("show");
-    //$(".dropdown-content").each(function(){
-    //  $(this).addClass("show");
-    //})
+    $(".dropdown-content").each(function(){
+      $(this).addClass("show");
+    })
+  }
+  function option_click(ctl){
+    $(".dropdown-content").each(function(){
+       $("#selected_option").val($(ctl).text())
+      $(this).removeClass("show");
+    })
   }
 
-  function searchResults(search_text){
-    //search_text = $('searchBox').val();
-    $.ajax({
-        url: '/searchresults/' + search_text,
-        error: function() {
-            //$('#searchNotification').html('<p>An error has occurred</p>');
-            $('#searchNotification').html("");  
-        },
-        dataType: 'json',
-        success: function(data) {
-          console.log(data);
-          
-          temp_html = '<div class="" style="float:left">' +
-            '<h4 style="text-align:center"></h4>' + 
-            '<div id="chart" class="chart-container">' +
-            '</div>' +
-            '</div>"'
-          temp_html = ""
-          group = data.data
-          console.log(data)
-          temp1_html = '<div id="lineContainer" class="chartCont" style="display:inline-block;width:100%;" >' +
-                                  '<div id="chart_line" class="chart-container1">' +
-                                  '</div>' +
-                              '</div>' +
-                              '<div id="barContainer" class="chartCont" style="display:inline-block;width:100%" >' +
-                                  '<div id="chart_bar" class="chart-container1">' +
-                                  '</div>' +
-                              '</div>' +
-                              '<div id="areaContainer" class="chartCont" style="display:inline-block;width:100%" >' +
-                                  '<div id="chart_area" class="chart-container1">' +
-                                  '</div>' +
-                              '</div>' +
-                              '<div id="stackedContainer" class="chartCont" style="display:inline-block;width:100%" >' +
-                                  '<div id="chart_stacked" class="chart-container1">' +
-                                  '</div>' +
-                                '</div>'
-          
-          for(i=0;i<group.length;i++){
-                temp_html = temp_html + '<div class="" style="display:inline-block">' +
-                                '<div id="chart-' + group[i]["group"].replace(" ","-") + '" class="chart-container">' +
-                                '</div>' +
-                                '<span style="text-align:center;font-style:bold">' + group[i]["group"] + '</span>' +
-                              '</div>'
-              }
-              $('#searchNotification').html("");
-              $('#searchNotification').html('<div id="pieContainer" class="chartCont" style="display:inline-block">' + temp_html + '</div>' + temp1_html);
-              
-                for(i=0;i<group.length;i++){
-                  //piechart(group[i]["result"], 'chart-' + group[i]["group"].replace(" ","-"));
-                  Morris.Donut({
-                    element: 'chart-' + group[i]["group"].replace(" ","-"),
-                    data: group[i]["result"],
-                      formatter: function (x) { return x + "%"}
-                    });
-                }
+  var dataset = [
+        { name: 'IE', percent: 39.10 },
+        { name: 'Chrome', percent: 32.51 },
+        { name: 'Safari', percent: 13.68 },
+        { name: 'Firefox', percent: 8.71 },
+        { name: 'Others', percent: 6.01 }
+    ];
 
-
-               
-              config = {
-                  data: data.data,
-                    xkey: data.x_key,
-                    ykeys: data.y_keys,
-                    labels: data.y_labels,
-                    hideHover: 'auto',
-                    lineColors: data.colors,
-                    barColors: data.colors
-                };
-                config.element = "chart_line"
-                Morris.Line(config)
-                config.element = "chart_area"
-                Morris.Area(config)
-                config.element = "chart_bar"
-                Morris.Bar(config)
-                config.stacked = true;
-                config.element = "chart_stacked"
-                Morris.Bar(config)
-                selectChart(data["chartType"])
-               
-        },
-        type: 'GET'
-      });
-  } 
-
-
-function selectChart(type){
-  $('.chartoption').each(function(){
-    $(this).removeClass('selectedChart');
-  })
-
-  $('.chartCont').each(function(){
-    $(this).addClass('hide');
-  })
-  $('#' + type + 'Chart').addClass('selectedChart')
-  $('#' + type + 'Container').removeClass('hide')
-  
-}
-      
-function piechart(dataset, elementName){
     var pie=d3.layout.pie()
             .value(function(d){return d.percent})
             .sort(null)
             .padAngle(.03);
 
-    var w=200,h=200;
+    var w=300,h=300;
 
     var outerRadius=w/2;
-    var innerRadius=65;
+    var innerRadius=100;
 
     var color = d3.scale.category10();
 
@@ -350,7 +235,7 @@ function piechart(dataset, elementName){
             .outerRadius(outerRadius)
             .innerRadius(innerRadius);
 
-    var svg=d3.select("#" + elementName)
+    var svg=d3.select("#chart")
             .append("svg")
             .attr({
                 width:w,
@@ -359,7 +244,7 @@ function piechart(dataset, elementName){
             }).append('g')
             .attr({
                 transform:'translate('+w/2+','+h/2+')'
-            }); 
+            });
     var path=svg.selectAll('path')
             .data(pie(dataset))
             .enter()
@@ -432,31 +317,31 @@ function piechart(dataset, elementName){
         legend.append('text')
                 .attr({
                     x:30,
-                    y:35
+                    y:15
                 })
                 .text(function(d){
                     return d;
                 }).style({
                     fill:'#929DAF',
-                    'font-size':'12px'
+                    'font-size':'14px'
                 });
     };
 
     setTimeout(restOfTheData,1000);
-  }
+
 </script>
 <style>
  
 .widget {
     margin: 0 auto;
-    width:150px;
+    width:350px;
     margin-top:50px;
+    background-color: #222D3A;
     border-radius: 5px;
+    box-shadow: 0px 0px 1px 0px #06060d;
+
 }
-.selectedChart {
-    border-bottom-style: solid;
-    border-bottom-color: green
-}
+
 .header{
     background-color: #29384D;
     height:40px;
@@ -471,14 +356,7 @@ function piechart(dataset, elementName){
 }
 
 .chart-container{
-  padding-left:15px;
-    width:200px;
-    height: 200px;
-    text-align: center
-}
-
-.chart-container1 {
-  height:225px
+    padding:25px;
 }
 
 .shadow {
