@@ -130,26 +130,46 @@
       </div>
     </div>
     <br/>
-    <div class="row">
-      <div class="col-sm-3" style="width:20%">
-
+    <div class="row col-sm-12">
+      <div class="col-sm-4" style="width:30%;">
+        <div id="qanda" style="display:none">
+        <div class="row">
+          <div><label><b>Question: </b></label>
+            <p id="questionId" style="word-wrap: break-word;"></p>
+          </div>
+        </div>
+       <div class="row">
+          <div> <label><b>Answer: </b></label>
+            <p id="answerId" style="word-wrap: break-word;"></p>
+          </div>
+       </div>
       </div>
-      <div class="col-sm-8" style="width:60%">
+      </div>
+      <div class="col-sm-4" style="width:50%">
           <div class="row" id="searchNotification" style="text-align: center  ">
          
           </div>
       </div>
-      <div class="col-sm-2" style="width:20%">
-
+      <div class="col-sm-4" style="width:20%">
+          <div class="row" id="keywordId" style="display:none">
+          <div> <label><b>Keywords: </b></label>
+            <p id="keywords" style="word-wrap: break-word;"></p>
+          </div>
+       </div>
       </div>  
     </div>
-    
+    <br/>
+    <div class="row col-sm-24" id="sentimentGrid">
+
+    </div>
   </div>
   <!-- /.content-wrapper -->
 
 </div>
 <!-- ./wrapper -->
 <input type="hidden" id="selected_option"/>
+
+<input type="hidden" id="searchKey"/>
 <!-- jQuery 3 -->
 <script src="/assets/bower_components/jquery/dist/jquery.min.js"></script>
 <!-- jQuery UI 1.11.4 -->
@@ -197,8 +217,9 @@
 $.ready(function(){
   $(".dropdown-content").each(function(){
       $(this).removeClass("show");
-    })
+    });
 })
+  setInterval(callQandA, 120000);
   function searchChange(ctl){
     search_text = $(ctl).val();
     $.ajax({
@@ -218,17 +239,22 @@ $.ready(function(){
   }
   function option_click(ctl){
     $('#myDropdown').removeClass("show");
+    $('#searchKey').val('')
     $("#searchBox").val($(ctl).html())
+    $('#searchKey').val($(ctl).attr('data-key'));
     searchResults($(ctl).html());
+    getQandA($(ctl).attr('data-key'));
+    getKeywords($(ctl).attr('data-key'));
   }
 
   function build_table_results(rows){
     temp_html = ""
-    
+
     $.each(rows, function(index,row){
-      temp_html = temp_html + '<a href="#" onclick="option_click(this);">' + row + '</a>'
+    /*Key is the collection of the different search patterns and the value is the id*/
+      temp_html = temp_html + '<a href="#" onclick="option_click(this)" data-key=' + row + '>' + index + '</a>'
     });
-      
+
     $("#myDropdown").html(temp_html);
     $('#myDropdown').addClass("show");
     //$(".dropdown-content").each(function(){
@@ -236,20 +262,65 @@ $.ready(function(){
     //})
   }
 
+  function callQandA(){
+  var key = $('#searchKey').val();
+  if(key){
+    getQandA(key);
+    getKeywords(key);
+    }
+  }
+function getQandA(search_key){
+     $.ajax({
+        url: '/getqanda/' + search_key,
+        error: function(err) {
+           console.log(err);
+           $('#qanda').html("Error retrieving Question and Answers")
+        },
+        dataType: 'json',
+        success: function(data) {
+            buildQandAResult(data)
+        },
+        type: 'GET'
+      });
+}
+function getKeywords(search_key){
+var result = '';
+     $.ajax({
+        url: '/keywords/' + search_key,
+        error: function(err) {
+           console.log(err);
+            $('#keywords').html("Error retrieving keywords")
+        },
+        dataType: 'json',
+        success: function(data) {
+        result = data.join();
+          $('#keywords').html(result);
+          $('#keywordId').css('display','block');
+        },
+        type: 'GET'
+      });
+}
+function buildQandAResult(data){
+$.each(data, function(index, row){
+$('#questionId').html(index);
+$('#answerId').html(row);
+});
+$('#qanda').css('display','block');
+}
   function searchResults(search_text){
     //search_text = $('searchBox').val();
     $.ajax({
         url: '/searchresults/' + search_text,
         error: function() {
             //$('#searchNotification').html('<p>An error has occurred</p>');
-            $('#searchNotification').html("");  
+            $('#searchNotification').html("");
         },
         dataType: 'json',
         success: function(data) {
           console.log(data);
-          
+
           temp_html = '<div class="" style="float:left">' +
-            '<h4 style="text-align:center"></h4>' + 
+            '<h4 style="text-align:center"></h4>' +
             '<div id="chart" class="chart-container">' +
             '</div>' +
             '</div>"'
@@ -272,7 +343,7 @@ $.ready(function(){
                                   '<div id="chart_stacked" class="chart-container1">' +
                                   '</div>' +
                                 '</div>'
-          
+
           for(i=0;i<group.length;i++){
                 temp_html = temp_html + '<div class="" style="display:inline-block">' +
                                 '<div id="chart-' + group[i]["group"].replace(" ","-") + '" class="chart-container">' +
@@ -282,7 +353,7 @@ $.ready(function(){
               }
               $('#searchNotification').html("");
               $('#searchNotification').html('<div id="pieContainer" class="chartCont" style="display:inline-block">' + temp_html + '</div>' + temp1_html);
-              
+
                 for(i=0;i<group.length;i++){
                   //piechart(group[i]["result"], 'chart-' + group[i]["group"].replace(" ","-"));
                   Morris.Donut({
@@ -293,7 +364,7 @@ $.ready(function(){
                 }
 
 
-               
+
               config = {
                   data: data.data,
                     xkey: data.x_key,
@@ -313,11 +384,11 @@ $.ready(function(){
                 config.element = "chart_stacked"
                 Morris.Bar(config)
                 selectChart(data["chartType"])
-               
+
         },
         type: 'GET'
       });
-  } 
+  }
 
 
 function selectChart(type){
@@ -330,9 +401,9 @@ function selectChart(type){
   })
   $('#' + type + 'Chart').addClass('selectedChart')
   $('#' + type + 'Container').removeClass('hide')
-  
+
 }
-      
+
 function piechart(dataset, elementName){
     var pie=d3.layout.pie()
             .value(function(d){return d.percent})
@@ -359,7 +430,7 @@ function piechart(dataset, elementName){
             }).append('g')
             .attr({
                 transform:'translate('+w/2+','+h/2+')'
-            }); 
+            });
     var path=svg.selectAll('path')
             .data(pie(dataset))
             .enter()
@@ -446,7 +517,17 @@ function piechart(dataset, elementName){
   }
 </script>
 <style>
- 
+ .column {
+    float: left;
+    width: 50%;
+}
+
+/* Clear floats after the columns */
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
 .widget {
     margin: 0 auto;
     width:150px;

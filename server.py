@@ -61,7 +61,7 @@ def search(code):
         row1_set.execute(custom_query)
         
         time_codes = ["lower(year || '' || quarter || '' || ticker || '' || company) like '%" + word + "%'" for word in filtered_code]
-        custom_query = "select distinct year,quarter, ticker, company from tanl.transcripts where " + " or ".join(time_codes) + "  order by 1 desc limit 10"
+        custom_query = "select distinct year,quarter, ticker, company, tr_key from tanl.transcripts where " + " or ".join(time_codes) + "  order by 1 desc limit 10"
         row2_set.execute(custom_query)
 
         time_codes = ["lower(year|| ' ' || quarter || ' of ' || ticker) like '%" + word + "%'" for word in filtered_code]
@@ -77,7 +77,7 @@ def search(code):
         custom_query = "select distinct code, search_values from tanl.search_references"
         row1_set.execute(custom_query)
     if row2_set.rowcount == 0 or len(filtered_code) == 0:
-        custom_query = "select distinct year,quarter, ticker, company from tanl.transcripts order by 1 desc limit 10"
+        custom_query = "select distinct year,quarter, ticker, company, tr_key from tanl.transcripts order by 1 desc limit 10"
         row2_set.execute(custom_query)
     if row3_set.rowcount == 0 or len(filtered_code) == 0:
         custom_query = "select distinct quarter from tanl.transcripts  order by 1 desc limit 5"
@@ -85,7 +85,7 @@ def search(code):
     if row4_set.rowcount == 0 or len(filtered_code) == 0:
         custom_query = "select distinct company, year||'-'||quarter, ticker from tanl.transcripts  order by 1 desc limit 5"
         row4_set.execute(custom_query) 
-    result = []
+    result = {}
 
     result1 = [row[0] + " " + row[1] for row in row1_set.fetchall()]
     result2 = [list(row) for row in row2_set.fetchall()]
@@ -97,22 +97,21 @@ def search(code):
         for row2 in result2:
             temp = row1 + " " + row2[2] + " (" + row2[3] + ") for " + str(row2[0])
             if temp not in result:
-                result.append(temp)
-            
-            temp = row1 + " " + row2[2] + " (" + row2[3] + ") for " + str(row2[0]) + " " + row2[1]
-            if temp not in result:
-                result.append(temp)
+                result.update({temp: row2[4]})
 
             temp = row1 + " " + row2[2] + " (" + row2[3] + ") for " + str(row2[0]) + " " + row2[1]
             if temp not in result:
-                result.append(temp)
+                result.update({temp: row2[4]})
+
+            temp = row1 + " " + row2[2] + " (" + row2[3] + ") for " + str(row2[0]) + " " + row2[1]
+            if temp not in result:
+                result.update({temp: row2[4]})
 
 
             temp = row1 + " " + row2[2] + " (" + row2[3] + ") for last 12 months"
             if temp not in result:
-                result.append(temp)
-
-    return jsonify(sorted(list(set(result)), reverse=True))
+                result.update({temp: row2[4]})
+    return json.dumps(result)
 
 @app.route("/searchresults/<string:code>/", methods=['GET'])
 def search_results(code):
@@ -199,7 +198,25 @@ def search_results(code):
     result_dict["data"] = temp_group_result
     return jsonify(result_dict)
 
+@app.route("/getqanda/<string:code>/", methods=['GET'])
+def getqanda(code):
+    qanda = {}
+    conn = get_db()
+    result_set = conn.cursor()
+    query =  "SELECT qa_key, tr_key, question, answer, questionasw, answerasw FROM tanl.questionanswer where tr_key='" + code + "' ORDER BY RANDOM() LIMIT 1"
+    result_set.execute(query);
+    result = result_set.fetchall();
+    qanda.update({result[0][2]: result[0][3]});
+    return jsonify(qanda);
 
+@app.route("/keywords/<string:code>/", methods=['GET'])
+def keywords(code):
+    conn = get_db()
+    result_set = conn.cursor()
+    query =  "SELECT qa_key, tr_key, type, keyword, count FROM tanl.keywords where tr_key='" + code + "' ORDER BY RANDOM() LIMIT 5"
+    result_set.execute(query);
+    result = [row[3] for row in result_set.fetchall()]
+    return jsonify(result);
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
