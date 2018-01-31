@@ -175,3 +175,32 @@ class pgDAO:
             cur.execute(sql, data)
         self.myConnection.commit()
         self.closeConnection()
+
+    def getQuestionAnswer(self):
+        self.openConnection()
+        cur = self.myConnection.cursor()
+        custom_query = "select tr_key, qa_key,questionasw, answerasw  from questionanswer"
+        cur.execute(custom_query)
+        result = [row for row in cur.fetchall()] 
+        self.closeConnection()
+        return result
+    
+    def delete_QASentiment(self):
+        self.openConnection()
+        cur = self.myConnection.cursor()
+        tables = ['transcript_qa_sentiment_results']
+        for table in tables:
+            sql = "DELETE FROM " + table 
+            cur.execute(sql)
+        self.myConnection.commit()
+        self.closeConnection()
+
+    def iQASentiment(self, trans):
+        self.openConnection()
+        cur = self.myConnection.cursor()
+        sql = """INSERT INTO transcript_qa_sentiment_results(tr_key, qa_key, type, sentiment, words_count, count_pct)
+             VALUES(%s, %s, %s, %s, %s, %s) """
+        data = (trans["tr_key"], trans["qa_key"], trans["type"], trans["sentiment"], trans["words_count"], trans["count_pct"],)
+        cur.execute(sql, data)
+        self.myConnection.commit()
+        self.closeConnection()
