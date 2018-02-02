@@ -245,6 +245,8 @@ $.ready(function(){
     searchResults($(ctl).html());
     getQandA($(ctl).attr('data-key'));
     getKeywords($(ctl).attr('data-key'));
+    getMetrics($(ctl).attr('data-key'));
+    qandaBySearch($(ctl).attr('data-key'));
   }
 
   function build_table_results(rows){
@@ -296,6 +298,41 @@ var result = '';
         result = data.join();
           $('#keywords').html(result);
           $('#keywordId').css('display','block');
+        },
+        type: 'GET'
+      });
+}
+
+function getMetrics(search_key){
+var result = '';
+     $.ajax({
+        url: '/metrics/' + search_key,
+        error: function(err) {
+           console.log(err);
+            $('#metrics').html("Error retrieving keywords")
+        },
+        dataType: 'json',
+        success: function(data) {
+        result = data.join();
+          $('#metrics').html(result);
+          $('#metricsId').css('display','block');
+        },
+        type: 'GET'
+      });
+}
+
+function qandaBySearch(search_key){
+var result = '';
+     $.ajax({
+        url: '/qanda/' + search_key,
+        error: function(err) {
+           console.log(err);
+            $('#qanda').html("Error retrieving keywords")
+        },
+        dataType: 'json',
+        success: function(data) {
+        result = data.join();
+          $('#qanda').html(result);
         },
         type: 'GET'
       });

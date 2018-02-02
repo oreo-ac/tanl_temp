@@ -1,4 +1,6 @@
 <script src="/assets/bower_components/jquery/dist/jquery.min.js"></script>
+
+
 <script type="text/javascript">
 $.ready(function(){
   $(".dropdown-content").each(function(){

@@ -218,5 +218,23 @@ def keywords(code):
     result = [row[3] for row in result_set.fetchall()]
     return jsonify(result);
 
+@app.route("/metrics/<string:code>/", methods=['GET'])
+def metrics(code):
+    conn = get_db()
+    result_set = conn.cursor()
+    query = "SELECT count(an_key), count(ex_key) FROM tanl.questionanswer where tr_key='" + code + "'"
+    result_set.execute(query);
+    result = result_set.fetchall()
+    return jsonify(result);
+
+@app.route("/qanda/<string:code>/", methods=['GET'])
+def qanda(code):
+    conn = get_db()
+    result_set = conn.cursor()
+    query = "SELECT qa_key, tr_key, question, answer, questionasw, answerasw,ex_key,an_key FROM tanl.questionanswer where tr_key='" + code + "'"
+    result_set.execute(query);
+    result = result_set.fetchall();
+    return jsonify(result);
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True);
