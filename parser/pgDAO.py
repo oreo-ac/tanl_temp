@@ -27,7 +27,7 @@ class pgDAO:
     def delete_transcripts(self, trans):
         self.openConnection()
         cur = self.myConnection.cursor()
-        tables = ['questionanswer', 'keywords', 'customkeymapscore', 'transcript_sentiment_results', 'keywords_mng_talk', 'mng_talk','transcripts']
+        tables = ['transcript_qa_sentiment_results','questionanswer', 'keywords', 'customkeymapscore', 'transcript_sentiment_results', 'keywords_mng_talk', 'mng_talk','transcripts']
         for table in tables:
             sql = "DELETE FROM " + table + " WHERE tr_key=%s"
             data = (trans.tr_key,)
@@ -59,27 +59,35 @@ class pgDAO:
     def iExecutive(self, executive):
         self.openConnection()
         cur = self.myConnection.cursor()
-        sql = """DELETE from executives where ex_key=%s """
+        #sql = """DELETE from executives where ex_key=%s """
+        #data = (executive.ex_key,)
+        #cur.execute(sql, data)
+        custom_query = """select ex_key from executives where ex_key=%s """
         data = (executive.ex_key,)
-        cur.execute(sql, data)
-        sql = """INSERT INTO executives(ex_key, company, name)
-             VALUES(%s, %s, %s) """
-        data = (executive.ex_key, executive.company, executive.name)
-        cur.execute(sql, data)
-        self.myConnection.commit()
+        cur.execute(custom_query, data)
+        if cur.rowcount<=0:
+            sql = """INSERT INTO executives(ex_key, company, name)
+                VALUES(%s, %s, %s) """
+            data = (executive.ex_key, executive.company, executive.name)
+            cur.execute(sql, data)
+            self.myConnection.commit()
         self.closeConnection()
 
     def iAnalyst(self, analyst):
         self.openConnection()
         cur = self.myConnection.cursor()
-        sql = """DELETE from analyst where an_key=%s """
+        #sql = """DELETE from analyst where an_key=%s """
+        #data = (analyst.an_key,)
+        #cur.execute(sql, data)
+        custom_query = """select an_key from analyst where an_key=%s """
         data = (analyst.an_key,)
-        cur.execute(sql, data)
-        sql = """INSERT INTO analyst(an_key, company, name)
-             VALUES(%s, %s, %s) """
-        data = (analyst.an_key, analyst.company, analyst.name)
-        cur.execute(sql, data)
-        self.myConnection.commit()
+        cur.execute(custom_query, data)
+        if cur.rowcount<=0:
+            sql = """INSERT INTO analyst(an_key, company, name)
+                VALUES(%s, %s, %s) """
+            data = (analyst.an_key, analyst.company, analyst.name)
+            cur.execute(sql, data)
+            self.myConnection.commit()
         self.closeConnection()
 
     def iQA(self, qa):

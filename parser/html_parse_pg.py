@@ -102,7 +102,7 @@ def parseHTML(htmlData, pageId):
             #print(child.string)
             name, role = child.string.split("-", 1)
             callParticipant = Participant()
-            callParticipant.name = name.strip()+pageId
+            callParticipant.name = name.strip() #+pageId
             callParticipant.role = role.strip()
             executies.append(callParticipant)
     # SUMMARY DATA
@@ -148,7 +148,7 @@ def parseHTML(htmlData, pageId):
             #print(type(child.string))
             name, company = child.string.split("-", 1)
             callParticipant = Participant()
-            callParticipant.name = name.strip()+pageId
+            callParticipant.name = name.strip()#+pageId
             callParticipant.company = company.strip()
             analysts.append(callParticipant)
             # analysts.update({name.strip():company.strip()})
@@ -350,10 +350,16 @@ if len(sys.argv) > 1:
                     data.an_key = anKeys[0]
                 else:
                     data.an_key = None
+                    print(data.questionedBy)
+                    print(json.dumps(summary.analysts, default=obj_dict))
+                    break
                 if (len(exKeys) > 0):
                     data.ex_key = exKeys[0]
                 else:
                     data.ex_key = None
+                    print(data.answeredBy)
+                    print(json.dumps(summary.executies, default=obj_dict))
+                    break
                 dao.iQA(data)
                 keys = word_tokenize(data.questionASW)
                 keys = list(filter(lambda d: check_if_exists_in_list(fin_words_list, d.upper()), keys))
@@ -367,76 +373,79 @@ if len(sys.argv) > 1:
                 ans_words = keys
                 keys = ([(d, len(list(filter(lambda k: d in k, keys)))) for d in set(keys)])
                 dao.iQAKeyword(keys, data.tr_key, data.qa_key, "A")
-            ques_pos_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_pos, d.upper()), ques_words)))
-            ques_neg_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_neg, d.upper()), ques_words)))
-            ques_neu_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_neu, d.upper()), ques_words)))
+                ques_pos_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_pos, d.upper()), ques_words)))
+                ques_neg_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_neg, d.upper()), ques_words)))
+                ques_neu_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_neu, d.upper()), ques_words)))
 
-            ans_pos_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_pos, d.upper()), ans_words)))
-            ans_neg_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_neg, d.upper()), ans_words)))
-            ans_neu_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_neu, d.upper()), ans_words)))
+                ans_pos_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_pos, d.upper()), ans_words)))
+                ans_neg_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_neg, d.upper()), ans_words)))
+                ans_neu_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_neu, d.upper()), ans_words)))
 
-            trans = {}
-            trans["tr_key"] = tr_key_temp
-            trans["type"] = "Q"
-            tot_words = (ques_neg_words+ques_pos_words + ques_neu_words)
+                trans = {}
+                trans["tr_key"] = tr_key_temp
+                trans["type"] = "Q"
+                trans["qa_key"]=data.qa_key
+                tot_words = (ques_neg_words+ques_pos_words + ques_neu_words)
 
-            trans["sentiment"] = "positive"
-            trans["words_count"] = ques_pos_words
-            trans["count_pct"] = getPercentage(ques_pos_words,tot_words)
-            dao.iSentiment(trans)
+                trans["sentiment"] = "positive"
+                trans["words_count"] = ques_pos_words
+                trans["count_pct"] = getPercentage(ques_pos_words,tot_words)
+                dao.iQASentiment(trans)
 
-            trans["sentiment"] = "negative"
-            trans["words_count"] = ques_neg_words
-            trans["count_pct"] = getPercentage(ques_neg_words, tot_words)
-            dao.iSentiment(trans)
+                trans["sentiment"] = "negative"
+                trans["words_count"] = ques_neg_words
+                trans["count_pct"] = getPercentage(ques_neg_words, tot_words)
+                dao.iQASentiment(trans)
 
-            trans["sentiment"] = "neutral"
-            trans["words_count"] = ques_neu_words
-            trans["count_pct"] = getPercentage(ques_neu_words , tot_words)
-            dao.iSentiment(trans)
-
-
-            trans = {}
-            trans["tr_key"] = tr_key_temp
-            trans["type"] = "A"
-            tot_qa_words =tot_words
-            tot_words = (ans_neg_words+ans_pos_words + ans_neu_words)
-
-            trans["sentiment"] = "positive"
-            trans["words_count"] = ans_pos_words
-            trans["count_pct"] = getPercentage(ans_pos_words,tot_words)
-            dao.iSentiment(trans)
-
-            trans["sentiment"] = "negative"
-            trans["words_count"] = ans_neg_words
-            trans["count_pct"] = getPercentage(ans_neg_words, tot_words)
-            dao.iSentiment(trans)
-
-            trans["sentiment"] = "neutral"
-            trans["words_count"] = ans_neu_words
-            trans["count_pct"] = getPercentage(ans_neu_words ,tot_words)
-            dao.iSentiment(trans)
+                trans["sentiment"] = "neutral"
+                trans["words_count"] = ques_neu_words
+                trans["count_pct"] = getPercentage(ques_neu_words , tot_words)
+                dao.iQASentiment(trans)
 
 
-            trans = {}
-            trans["tr_key"] = tr_key_temp
-            trans["type"] = "QA"
-            tot_ans_words = tot_words
-            tot_words = tot_qa_words + tot_ans_words
+                trans = {}
+                trans["tr_key"] = tr_key_temp
+                trans["type"] = "A"
+                trans["qa_key"]=data.qa_key
+                tot_qa_words =tot_words
+                tot_words = (ans_neg_words+ans_pos_words + ans_neu_words)
 
-            trans["sentiment"] = "positive"
-            trans["words_count"] = ans_pos_words + ques_pos_words
-            trans["count_pct"] = getPercentage(ans_pos_words + ques_pos_words,tot_words)
-            dao.iSentiment(trans)
+                trans["sentiment"] = "positive"
+                trans["words_count"] = ans_pos_words
+                trans["count_pct"] = getPercentage(ans_pos_words,tot_words)
+                dao.iQASentiment(trans)
 
-            trans["sentiment"] = "negative"
-            trans["words_count"] = ans_neg_words + ques_neg_words
-            trans["count_pct"] = getPercentage(ans_neg_words + ques_neg_words, tot_words)
-            dao.iSentiment(trans)
+                trans["sentiment"] = "negative"
+                trans["words_count"] = ans_neg_words
+                trans["count_pct"] = getPercentage(ans_neg_words, tot_words)
+                dao.iQASentiment(trans)
 
-            trans["sentiment"] = "neutral"
-            trans["words_count"] = ans_neu_words + ques_neu_words
-            trans["count_pct"] = getPercentage(ans_neu_words + ques_neu_words, tot_words)
-            dao.iSentiment(trans)
+                trans["sentiment"] = "neutral"
+                trans["words_count"] = ans_neu_words
+                trans["count_pct"] = getPercentage(ans_neu_words ,tot_words)
+                dao.iQASentiment(trans)
+
+
+                trans = {}
+                trans["tr_key"] = tr_key_temp
+                trans["type"] = "QA"
+                trans["qa_key"]=data.qa_key
+                tot_ans_words = tot_words
+                tot_words = tot_qa_words + tot_ans_words
+
+                trans["sentiment"] = "positive"
+                trans["words_count"] = ans_pos_words + ques_pos_words
+                trans["count_pct"] = getPercentage(ans_pos_words + ques_pos_words,tot_words)
+                dao.iQASentiment(trans)
+
+                trans["sentiment"] = "negative"
+                trans["words_count"] = ans_neg_words + ques_neg_words
+                trans["count_pct"] = getPercentage(ans_neg_words + ques_neg_words, tot_words)
+                dao.iQASentiment(trans)
+
+                trans["sentiment"] = "neutral"
+                trans["words_count"] = ans_neu_words + ques_neu_words
+                trans["count_pct"] = getPercentage(ans_neu_words + ques_neu_words, tot_words)
+                dao.iQASentiment(trans)
 else:
     print("Expects HTML file root location")
