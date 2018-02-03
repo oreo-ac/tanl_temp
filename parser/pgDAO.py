@@ -9,7 +9,11 @@ class pgDAO:
         pass
 
     def openConnection(self):
-        self.myConnection = psycopg2.connect(host="tanl.cgnbxyetzh4a.us-east-1.rds.amazonaws.com", user="tanl",
+        try:
+            self.myConnection = psycopg2.connect(host="tanl.cgnbxyetzh4a.us-east-1.rds.amazonaws.com", user="tanl",
+                                             password="Semmakata$7", dbname="tanl")
+        except:
+            self.myConnection = psycopg2.connect(host="tanl.cgnbxyetzh4a.us-east-1.rds.amazonaws.com", user="tanl",
                                              password="Semmakata$7", dbname="tanl")
 
     def closeConnection(self):
