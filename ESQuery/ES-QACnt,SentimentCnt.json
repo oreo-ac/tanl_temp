@@ -1,0 +1,46 @@
+{
+	"size":0,
+	"query" : {
+      "constant_score" : {
+         "filter" : {
+            "bool" : {
+              "must" : [
+                { "bool" : { 
+                    "should" : [
+                        { "term" : {"ticker.keyword" : "TSLA"}}, 
+                        { "term" : {"quarter.keyword" : "BAC"}}
+                    ]
+                }
+                },
+                { "bool" : { 
+                    "should" : [
+                        { "bool" : 
+                            { "must":[
+                                { "term" : {"year.keyword" : "2016"}}, 
+                                { "term" : {"quarter.keyword" : "Q4"}}
+                                ]
+                            }
+                        },
+                        { "bool" : 
+                            { "must":[
+                                { "term" : {"year.keyword" : "2016"}}, 
+                                { "term" : {"quarter.keyword" : "Q3"}}
+                                ]
+                            }
+                        }
+                    ]
+                }
+                }     
+              ] 
+            }
+         }
+      }
+   },
+   "aggs":{
+        "sentimentAgg":{
+            "terms":{
+                "field":"sentiment.keyword"
+            }
+        }
+    }
+}
