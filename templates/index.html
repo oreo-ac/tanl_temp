@@ -89,6 +89,15 @@
 
 /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
 .show {display:block;}
+.positive {
+  color:#00a65a;
+}
+.neutral {
+  color:#3c8dbc;
+}
+.negative {
+  color:#f56954;
+}
     </style>
 </head>
 <body class="hold-transition skin-blue sidebar-collapse">
@@ -130,35 +139,96 @@
       </div>
     </div>
     <br/>
-    <div class="row col-sm-12">
-      <div class="col-sm-4" style="width:30%;">
-        <div id="qanda" style="display:none">
-        <div class="row">
-          <div><label><b>Question: </b></label>
-            <p id="questionId" style="word-wrap: break-word;"></p>
-          </div>
+    <div class="row">
+    </div> 
+    <div class="row" style="margin-left:15px">
+      <div class="windowContViolet">
+        <div class="row" style="padding:10px;width:100%;text-align:center">
+          <span style="font-size: 12pt">Metrics</span>
         </div>
-       <div class="row">
-          <div> <label><b>Answer: </b></label>
-            <p id="answerId" style="word-wrap: break-word;"></p>
+        <div class="row" style="padding-left:25px;padding-right:25px;width:100%">
+            <div>
+              <p id="metric_container" style="word-wrap: break-word;"></p>
+            </div>
           </div>
-       </div>
       </div>
-      </div>
-      <div class="col-sm-4" style="width:50%">
-          <div class="row" id="searchNotification" style="text-align: center  ">
+      <div class="windowContSeal">
+        
+          <div class="" id="searchNotification" style="width:100%;text-align: center;">
          
           </div>
       </div>
-      <div class="col-sm-4" style="width:20%">
-          <div class="row" id="keywordId" style="display:none">
-          <div> <label><b>Keywords: </b></label>
-            <p id="keywords" style="word-wrap: break-word;"></p>
+      <div class="windowContBlue">
+          <div class="row" style="width:100%;text-align:center">
+              <span style="font-size: 12pt">Search Results</span>
+            </div>
+            <div class="row" style="padding-left:25px;padding-right:25px;width:100%">
+                <div>
+                  <p id="search_results_container" style="word-wrap: break-word;"></p>
+                    <!--<div class="row">
+                      <div class="col-sm-6">
+                        Type
+                      </div>
+                      <div class="col-sm-6" id="search_result_type">
+                        N/A
+                      </div>
+                    </div>-->
+                    <div class="row">
+                        <div class="col-sm-6">
+                          Ticker
+                        </div>
+                        <div class="col-sm-6" id="search_result_ticker">
+                          N/A
+                        </div>
+                      </div>
+                      <hr/>
+                      <div class="row">
+                          <div class="col-sm-6">
+                            Year
+                          </div>
+                          <div class="col-sm-6" id="search_result_year">
+                            N/A
+                          </div>
+                        </div>
+                        <hr/>
+                        <div class="row">
+                            <div class="col-sm-6">
+                              Quarter
+                            </div>
+                            <div class="col-sm-6" id="search_result_quarter">
+                              N/A
+                            </div>
+                          </div>
+                </div>
+              </div>
+      </div>
+      <div class="windowContRed">
+        <div class="row" style="padding:10px;width:100%;text-align:center">
+          <span style="font-size: 12pt">Analysts</span>
+        </div>
+        <div class="row" style="padding-left:25px;padding-right:25px;width:100%">
+            <div>
+              <p id="analyst_container" style="word-wrap: break-word;"></p>
+            </div>
           </div>
-       </div>
+      </div>
+      <div class="windowContYellow">
+          <div class="table-responsive" id="sentimentGrid">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th class="" width="10px">Year</th>
+                    <th class="" width="10px">Quarter</th>
+                    <th width="60%">Question</th>
+                    <th width="30%">Keyword</th>
+                  </tr>
+                </thead>
+               <tbody id="sentimentGridData"></tbody>
+              </table>
+            </div>
+          </div>  
       </div>  
     </div>
-    <br/>
     <div class="row col-sm-24" id="sentimentGrid">
 
     </div>
@@ -210,25 +280,40 @@
 <script src="/assets/dist/js/adminlte.min.js"></script>
 <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
 <script src="/assets/dist/js/pages/dashboard.js"></script>
+<script src="/assets/js/wc.js"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="/assets/dist/js/demo.js"></script>
+<script src="/assets/dist/css/jqcloud.css"></script>
 <script src="/assets/bower_components/jquery/src/d3.min.js"></script>
 <script type="text/javascript">
+
+
+var words = [
+  {text: "Connection", weight: 13},
+  {text: "Financial", weight: 10.5},
+  {text: "Risk", weight: 9.4},
+  {text: "Loss", weight: 8},
+  {text: "improvement", weight: 6.2},
+  {text: "Consectetur", weight: 5},
+  {text: "Adipiscing", weight: 5},
+  /* ... */
+];
+
+
 $.ready(function(){
   $(".dropdown-content").each(function(){
       $(this).removeClass("show");
     });
+
+
 })
-  setInterval(callQandA, 120000);
   function searchChange(ctl){
     search_text = $(ctl).val();
     $.ajax({
         url: '/search/' + search_text,
         error: function() {
             //$('#searchNotification').html('<p>An error has occurred</p>');
-            $(".dropdown-content").each(function(){
-              $(this).removeClass("show");
-            })
+            
         },
         dataType: 'json',
         success: function(data) {
@@ -247,27 +332,195 @@ $.ready(function(){
     getKeywords($(ctl).attr('data-key'));
     getMetrics($(ctl).attr('data-key'));
     qandaBySearch($(ctl).attr('data-key'));
+    qandaBySearchGrid($(ctl).attr('data-key'));
   }
 
   function build_table_results(rows){
     temp_html = ""
+    tickers = rows.search_results.tickers
+    for(i=0;i<tickers.length;i++){
+      temp_html = temp_html + "<div>" + tickers[i] + "</div>"
+    }
+    $("#search_result_ticker").html(temp_html)
 
-    $.each(rows, function(index,row){
+    temp_html = ""
+    years = rows.search_results.years
+    for(i=0;i<years.length;i++){
+      temp_html = temp_html + "<div>" + years[i] + "</div>"
+    }
+    $("#search_result_year").html(temp_html)
+
+    temp_html = ""
+    quarters = rows.search_results.quarters
+    for(i=0;i<quarters.length;i++){
+      temp_html = temp_html + "<div>" + quarters[i] + "</div>"
+    }
+    $("#search_result_quarter").html(temp_html)
+
+    temp_html = ""
+    report_types = rows.search_results.report_types
+    for(i=0;i<report_types.length;i++){
+      temp_html = temp_html + "<div>" + report_types[i] + "</div>"
+    }
+    $("#search_result_type").html(temp_html)
+
+
+
+
+    temp_html = ""
+    $.each(rows.analyst_container, function(index,row){
     /*Key is the collection of the different search patterns and the value is the id*/
-      temp_html = temp_html + '<a href="#" onclick="option_click(this)" data-key=' + row + '>' + index + '</a>'
-    });
+      temp_html = temp_html + "<div class='row' style='margin-top:15px'>" + 
+        "<div class='col-sm-8' style='padding-top:0px'>" + row.name + "</div>" + 
+        "<div class='col-sm-4' style='padding-top:5px'>" +
+        '   <div class="row"><div class="progress-bar progressbar-green" role="progressbar" aria-valuenow="' + row.positive_pct + '"' +
+        '       aria-valuemin="0" aria-valuemax="100" style="background-color:green;height:4px;width:' + row.positive_pct + '%"></div></div>' +
+        '   <div class="row"><div class="progress-bar progressbar-red" role="progressbar" aria-valuenow="' + row.negative_pct + '"' +
+        '       aria-valuemin="0" aria-valuemax="100" style="background-color:red;height:4px;width:' + row.negative_pct + '%"></div></div>' +
+        '   <div class="row"><div class="progress-bar progressbar-blue" role="progressbar" aria-valuenow="' + row.neutral_pct + '"' +
+        '       aria-valuemin="0" aria-valuemax="100" style="height:4px;width:' + row.neutral_pct + '%"></div></div>' +
+        "</div></div>"   
+   });
 
-    $("#myDropdown").html(temp_html);
-    $('#myDropdown').addClass("show");
+    $("#analyst_container").html(temp_html);
+    temp_html = ""
+    temp_html = temp_html + "<div class='row' style='margin-top:7px'>" + 
+        " <div class='col-sm-9' style='padding-top:0px;text-align:right'>Total Questions</div>" + 
+        " <div class='col-sm-3' style='padding-top:0px'>" +
+        rows.metric_container.total_questions +
+        ' </div>' +
+        "</div>"  
+    temp_html = temp_html + "<div class='row' style='margin-top:7px'>" + 
+        " <div class='col-sm-9' style='padding-top:0px;text-align:right'>Positive Questions</div>" + 
+        " <div class='col-sm-3 positive' style='padding-top:0px'>" +
+        rows.metric_container.total_positive_questions +
+        ' </div>' +
+        "</div>"  
+    temp_html = temp_html + "<div class='row' style='margin-top:7px'>" + 
+        " <div class='col-sm-9' style='padding-top:0px;text-align:right'>Negative Questions</div>" + 
+        " <div class='col-sm-3 negative' style='padding-top:0px'>" +
+        rows.metric_container.total_negative_questions +
+        ' </div>' +
+        "</div>"  
+    temp_html = temp_html + "<div class='row' style='margin-top:7px'>" + 
+        " <div class='col-sm-9' style='padding-top:0px;text-align:right'>Neutral Questions</div>" + 
+        " <div class='col-sm-3 neutral' style='padding-top:0px'>" +
+        rows.metric_container.total_neutral_questions +
+        ' </div>' +
+        "</div>"
+    temp_html = temp_html + "<div class='row' style='margin-top:7px'>" + 
+        " <div class='col-sm-9' style='padding-top:0px;text-align:right'>Avg Questions Per Call</div>" + 
+        " <div class='col-sm-3' style='padding-top:0px'>" +
+        rows.metric_container.average_questions +
+        ' </div>' +
+        "</div>"     
+    temp_html = temp_html + "<div class='row' style='margin-top:7px'>" + 
+        " <div class='col-sm-9' style='padding-top:0px;text-align:right'>Number of Analysts</div>" + 
+        " <div class='col-sm-3' style='padding-top:0px'>" +
+        rows.metric_container.total_analysts +
+        ' </div>' +
+        "</div>"
+    temp_html = temp_html + "<div class='row' style='margin-top:7px'>" + 
+        " <div class='col-sm-9' style='padding-top:0px;text-align:right'>Avg Analysts Per Call</div>" + 
+        " <div class='col-sm-3' style='padding-top:0px'>" +
+        rows.metric_container.average_analysts +
+        ' </div>' +
+        "</div>"
+    
+    $("#metric_container").html(temp_html);
+  
+    temp_html = ""
+    $.each(rows.table_container, function(index,row){
+    /*Key is the collection of the different search patterns and the value is the id*/
+      temp_html = temp_html + 
+              "<tr>" + 
+              "   <td>" + row.year + "</td>" +
+              "   <td>" + row.quarter + "</td>" +
+              "   <td class='" + row.sentiment + "'>" + row.question + "</td>" +
+              "   <td>" + row.sentiment + "</td>" +
+              "</tr>"    
+   });
+
+    $("#sentimentGridData").html(temp_html);
     //$(".dropdown-content").each(function(){
     //  $(this).addClass("show");
     //})
+
+    temp_html = ""
+    console.log(rows.main_container.data)
+          group = rows.main_container.data
+          temp1_html = '<div id="lineContainer" class="chartCont" style="display:inline-block;width:100%;" >' +
+                                  '<div id="chart_line" class="chart-container1">' +
+                                  '</div>' +
+                              '</div>' +
+                              '<div id="barContainer" class="chartCont" style="display:inline-block;width:100%" >' +
+                                  '<div id="chart_bar" class="chart-container1">' +
+                                  '</div>' +
+                              '</div>' +
+                              '<div id="areaContainer" class="chartCont" style="display:inline-block;width:100%" >' +
+                                  '<div id="chart_area" class="chart-container1">' +
+                                  '</div>' +
+                              '</div>' +
+                              '<div id="stackedContainer" class="chartCont" style="display:inline-block;width:100%" >' +
+                                  '<div id="chart_stacked" class="chart-container1">' +
+                                  '</div>' +
+                                '</div>'
+
+      
+          for(i=0;i<group.length;i++){
+                temp_html = temp_html + '<td>' +
+                                '<div id="chart-' + group[i]["group"].replace(" ","-") + '" class="chart-container">' +
+                                '</div>' +
+                                '<span style="text-align:center;font-style:bold;color:black">' + group[i]["group"] + '</span>' +
+                              '</td>'
+              }
+              
+              $('#searchNotification').html("");
+              $('#searchNotification').html('<table id="pieContainer" class="chartCont"><tbody>' + temp_html + '</tbody></table>' + temp1_html);
+
+                for(i=0;i<group.length;i++){
+                  //piechart(group[i]["result"], 'chart-' + group[i]["group"].replace(" ","-"));
+                  Morris.Donut({
+                    element: 'chart-' + group[i]["group"].replace(" ","-"),
+                    data: group[i]["result"],
+                      formatter: function (x) { return x + "%"}
+                    });
+                }
+
+
+            
+              config = {
+                  data: rows.main_container.data1,
+                    xkey: rows.main_container.x_key,
+                    ykeys: rows.main_container.y_keys,
+                    labels: rows.main_container.y_labels,
+                    hideHover: 'auto',
+                    lineColors: rows.main_container.colors,
+                    barColors: rows.main_container.colors
+                };
+                config.element = "chart_line"
+                Morris.Line(config)
+                config.element = "chart_area"
+                Morris.Area(config)
+                config.element = "chart_bar"
+                Morris.Bar(config)
+                config.stacked = true;
+                config.element = "chart_stacked"
+                Morris.Bar(config)
+                selectChart(rows.main_container["chartType"])
+                //$('#temp').jQCloud(words, {
+                //    shape: 'rectangular',
+                //    width: 600,
+                //    height: 600
+              //
+              //  });
+
   }
 
   function callQandA(){
   var key = $('#searchKey').val();
   if(key){
-    getQandA(key);
+    //getQandA(key);
     getKeywords(key);
     }
   }
@@ -276,7 +529,7 @@ function getQandA(search_key){
         url: '/getqanda/' + search_key,
         error: function(err) {
            console.log(err);
-           $('#qanda').html("Error retrieving Question and Answers")
+           //$('#qanda').html("Error retrieving Question and Answers")
         },
         dataType: 'json',
         success: function(data) {
@@ -291,13 +544,22 @@ var result = '';
         url: '/keywords/' + search_key,
         error: function(err) {
            console.log(err);
-            $('#keywords').html("Error retrieving keywords")
+            //$('#keywords').html("Error retrieving keywords")
         },
         dataType: 'json',
         success: function(data) {
-        result = data.join();
-          $('#keywords').html(result);
-          $('#keywordId').css('display','block');
+
+          temp_html = ""
+          $(".keywordRow").each(function(){
+            $(this).remove()
+          })
+          for(i=0;i<data.length;i++){
+              temp_html = temp_html + '<tr class="keywordRow" style="font-size: 9pt">' +
+                  '  <td>' + data[i]["keyword"] + '</td>' +
+                  '  <td>' + data[i]["count"] + '</td>' + 
+                  '</tr>'
+          }
+          $('#keywordTable').append(temp_html);
         },
         type: 'GET'
       });
@@ -338,95 +600,11 @@ var result = '';
       });
 }
 function buildQandAResult(data){
-$.each(data, function(index, row){
-$('#questionId').html(index);
-$('#answerId').html(row);
-});
-$('#qanda').css('display','block');
+  $.each(data, function(index, row){
+    //$('#questionId').html(index);
+  });
 }
-  function searchResults(search_text){
-    //search_text = $('searchBox').val();
-    $.ajax({
-        url: '/searchresults/' + search_text,
-        error: function() {
-            //$('#searchNotification').html('<p>An error has occurred</p>');
-            $('#searchNotification').html("");
-        },
-        dataType: 'json',
-        success: function(data) {
-          console.log(data);
-
-          temp_html = '<div class="" style="float:left">' +
-            '<h4 style="text-align:center"></h4>' +
-            '<div id="chart" class="chart-container">' +
-            '</div>' +
-            '</div>"'
-          temp_html = ""
-          group = data.data
-          console.log(data)
-          temp1_html = '<div id="lineContainer" class="chartCont" style="display:inline-block;width:100%;" >' +
-                                  '<div id="chart_line" class="chart-container1">' +
-                                  '</div>' +
-                              '</div>' +
-                              '<div id="barContainer" class="chartCont" style="display:inline-block;width:100%" >' +
-                                  '<div id="chart_bar" class="chart-container1">' +
-                                  '</div>' +
-                              '</div>' +
-                              '<div id="areaContainer" class="chartCont" style="display:inline-block;width:100%" >' +
-                                  '<div id="chart_area" class="chart-container1">' +
-                                  '</div>' +
-                              '</div>' +
-                              '<div id="stackedContainer" class="chartCont" style="display:inline-block;width:100%" >' +
-                                  '<div id="chart_stacked" class="chart-container1">' +
-                                  '</div>' +
-                                '</div>'
-
-          for(i=0;i<group.length;i++){
-                temp_html = temp_html + '<div class="" style="display:inline-block">' +
-                                '<div id="chart-' + group[i]["group"].replace(" ","-") + '" class="chart-container">' +
-                                '</div>' +
-                                '<span style="text-align:center;font-style:bold">' + group[i]["group"] + '</span>' +
-                              '</div>'
-              }
-              $('#searchNotification').html("");
-              $('#searchNotification').html('<div id="pieContainer" class="chartCont" style="display:inline-block">' + temp_html + '</div>' + temp1_html);
-
-                for(i=0;i<group.length;i++){
-                  //piechart(group[i]["result"], 'chart-' + group[i]["group"].replace(" ","-"));
-                  Morris.Donut({
-                    element: 'chart-' + group[i]["group"].replace(" ","-"),
-                    data: group[i]["result"],
-                      formatter: function (x) { return x + "%"}
-                    });
-                }
-
-
-
-              config = {
-                  data: data.data,
-                    xkey: data.x_key,
-                    ykeys: data.y_keys,
-                    labels: data.y_labels,
-                    hideHover: 'auto',
-                    lineColors: data.colors,
-                    barColors: data.colors
-                };
-                config.element = "chart_line"
-                Morris.Line(config)
-                config.element = "chart_area"
-                Morris.Area(config)
-                config.element = "chart_bar"
-                Morris.Bar(config)
-                config.stacked = true;
-                config.element = "chart_stacked"
-                Morris.Bar(config)
-                selectChart(data["chartType"])
-
-        },
-        type: 'GET'
-      });
-  }
-
+ 
 
 function selectChart(type){
   $('.chartoption').each(function(){
@@ -439,6 +617,62 @@ function selectChart(type){
   $('#' + type + 'Chart').addClass('selectedChart')
   $('#' + type + 'Container').removeClass('hide')
 
+}
+
+function getKeywordsByQAKey(qakey){
+     var resultHtml = '';
+         $.ajax({
+        url: '/keywordsbyqakey/' + qakey,
+        error: function(err) {
+           console.log(err);
+        },
+        async:false,
+        dataType: 'json',
+        success: function(data) {
+          if(data.length > 0){
+          resultHtml ='<td class="col-md-4"> '
+        $.each(data, function(index, value){
+          var color = '';
+          color += value[3] === "positive" ? 'bggreen' : (value[3] === 'negative' ? 'bgred': 'bgblue');
+            resultHtml += '<div>' + value[2] + '</div>';
+        });
+        resultHtml += '</td>';
+        } else {
+        resultHtml = '<td class="col-md-5"> </td>'
+        }
+        },
+        type: 'GET'
+      });
+      return resultHtml;
+}
+
+function qandaBySearchGrid(search_key){
+  var result = '';
+     $.ajax({
+        url: '/qanda/' + search_key,
+        error: function(err) {
+           console.log(err);
+            //$('#sentimentGrid').html("Error retrieving QandA");
+            // $('#gridDiv').css('display','block');
+        },
+        dataType: 'json',
+        success: function(data) {
+        var resultHtml = '';
+        $.each(data, function(index, value){
+        if(index > 0){
+         //var color = getKeywordsByQAKey(value[4]);
+        var color="<td class='col-sm-5'></td>"
+         resultHtml += '<tr><td class="">' + value[1] + '</td><td class="">' + 
+                      value[2] +
+                      '</td><td class="col-md-6" style="line-height:20px">' + value[3] + '</td>' + color
+                      '</tr>';
+        }
+        });
+          $('#sentimentGridData').html(resultHtml);
+          $('#gridDiv').css('display','block');
+        },
+        type: 'GET'
+      });
 }
 
 function piechart(dataset, elementName){
@@ -559,6 +793,18 @@ function piechart(dataset, elementName){
     width: 50%;
 }
 
+.abbreviation{
+   width:100%;
+   overflow: hidden;
+   text-overflow: ellipsis;
+}
+
+.qadetails {
+  height:10px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
 /* Clear floats after the columns */
 .row:after {
     content: "";
@@ -590,8 +836,8 @@ function piechart(dataset, elementName){
 
 .chart-container{
   padding-left:15px;
-    width:200px;
-    height: 200px;
+    width:175px;
+    height: 175px;
     text-align: center
 }
 
@@ -602,6 +848,78 @@ function piechart(dataset, elementName){
 .shadow {
     -webkit-filter: drop-shadow( 0px 3px 3px rgba(0,0,0,.5) );
     filter: drop-shadow( 0px 3px 3px rgba(0,0,0,.5) );
+}
+
+.windowContViolet {
+  background-color: #00CCCC;
+  color:white;
+  margin-top:20px;
+  margin-right:10px;
+  border-radius:10px; 
+  height: 250px;
+  width:25%;
+  float:left;
+  min-width:150px;
+  overflow-x:hidden;
+  overflow-y:auto;
+}
+
+.windowContSeal {
+  background-color: #00CCCC;
+  color:white;
+  margin-top:20px;
+  margin-right:10px;
+  padding-top:25px;
+  border-radius:10px; 
+  height: 250px;
+  width:55%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  min-width:200px;
+  float:left;
+}
+
+.windowContBlue {
+  background-color: #00CCCC;
+  color:white;
+  margin-top:20px;
+  padding-top:15px;
+  padding-left:10px;
+  padding-right:10px;
+  margin-right:10px;
+  border-radius:10px; 
+  height: 250px;
+  width:16%;
+  min-width:150px;
+  float:left;
+}
+
+.windowContRed {
+  background-color: #00CCCC;
+  color:white;
+  margin-top:10px;
+  margin-right:10px;
+  border-radius:10px; 
+  height: 450px;
+  width:25%;
+  float:left;
+  min-width:150px;
+  overflow-x:hidden;
+  overflow-y:auto;
+}
+
+.windowContYellow {
+  background-color: #00CCCC;
+  color:white;
+  margin-top:10px;
+  margin-right:10px;
+  border-radius:10px; 
+  height: 450px;
+  width:72%;
+  overflow-x:hidden;
+  overflow-y:auto;
+  min-width:200px;
+  float:left;
 }
 </style>
 </body>
