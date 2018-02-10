@@ -102,7 +102,7 @@
 </head>
 <body class="hold-transition skin-blue sidebar-collapse">
 <div class="wrapper">
-  <div class="row" style="background-color:grey;color:white;margin-left:0px;margin-right:0px;height:45px;line-height:40px">
+  <div class="row col-sm-12" style="background-color:grey;color:white;margin-left:0px;height:45px;line-height:40px;">
     <div class="col-sm-3">
       <span style="font-size:20px;margin-left:15px">tAnL</span>
     </div>
@@ -138,6 +138,7 @@
                 style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#2F038B"></span>
       </div>
     </div>
+<<<<<<< HEAD
     <br/>
     <div class="row">
     </div> 
@@ -210,6 +211,34 @@
             <div>
               <p id="analyst_container" style="word-wrap: break-word;"></p>
             </div>
+=======
+    <div class="row top-buffer col-md-12">
+      <div class="col-md-4" id="qanda" style="display:none" >
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th class="col-md-2">Question</th>
+                <th class="col-md-2">Answer</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-md-2 abbreviation" id="questionId"></td>
+                <td class="col-md-2 abbreviation" id="answerId"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      <div class="col-md-6">
+          <div class="row" id="searchNotification" style="text-align: center  ">
+         
+          </div>
+      </div>
+      <div class="col-md-2">
+          <div class="row" id="keywordId" style="display:none">
+          <div> <label><b>Keywords: </b></label>
+            <p id="keywords" style="word-wrap: break-word;"></p>
+>>>>>>> 8358fa2638b2e63923cb7a2c7e152798c47ac067
           </div>
       </div>
       <div class="windowContYellow">
@@ -229,9 +258,43 @@
           </div>  
       </div>  
     </div>
+<<<<<<< HEAD
     <div class="row col-sm-24" id="sentimentGrid">
 
+=======
+     <div class="row top-buffer">
+     </div>
+  <div class="row top-buffer">
+       <div class="col-md-4" id="metrics" style="display:none" >
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th class="col-md-2">Metric</th>
+                <th class="col-md-2">Count</th>
+              </tr>
+            </thead>
+            <tbody id="metricData">
+
+            </tbody>
+          </table>
+        </div>
+    <div class="col-md-8" style="display:none" id="gridDiv">
+      <div class="table-responsive" id="sentimentGrid">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th class="col-md-2">Year</th>
+                  <th class="col-md-2">Quarter</th>
+                  <th class="col-md-6">Question</th>
+                  <th class="col-md-4">Keyword</th>
+                </tr>
+              </thead>
+             <tbody id="sentimentGridData"></tbody>
+            </table>
+          </div>
+>>>>>>> 8358fa2638b2e63923cb7a2c7e152798c47ac067
     </div>
+  </div>
   </div>
   <!-- /.content-wrapper -->
 
@@ -571,13 +634,25 @@ var result = '';
         url: '/metrics/' + search_key,
         error: function(err) {
            console.log(err);
-            $('#metrics').html("Error retrieving keywords")
+            $('#metricData').html("Error retrieving keywords")
+            $('#metrics').css('display','block');
         },
         dataType: 'json',
         success: function(data) {
-        result = data.join();
-          $('#metrics').html(result);
-          $('#metricsId').css('display','block');
+        var metricDataHtml = '';
+        $.each(data[0], function (index,value){
+        var val  = value[index] ? value[index]: "-"
+        if(index == 0){
+          metricDataHtml +='<tr><td class="col-md-2">Analyst</td><td class="col-md-2">' + val  + '</td></tr>'
+          } else if(index == 1) {
+           metricDataHtml +='<tr><td class="col-md-2">Executive</td><td class="col-md-2">' + val  + '</td></tr>'
+          } else if(index == 2) {
+           metricDataHtml +='<tr><td class="col-md-2">Q&A</td><td class="col-md-2">' + val  + '</td></tr>'
+          }
+        });
+        $('#metricData').html('');
+          $('#metricData').html(metricDataHtml);
+          $('#metrics').css('display','block');
         },
         type: 'GET'
       });
@@ -589,15 +664,51 @@ var result = '';
         url: '/qanda/' + search_key,
         error: function(err) {
            console.log(err);
-            $('#qanda').html("Error retrieving keywords")
+            $('#sentimentGrid').html("Error retrieving QandA");
+             $('#gridDiv').css('display','block');
         },
         dataType: 'json',
         success: function(data) {
-        result = data.join();
-          $('#qanda').html(result);
+        var resultHtml = '';
+        $.each(data, function(index, value){
+        if(index > 0){
+         var color = getKeywordsByQAKey(value[4]);
+        resultHtml += '<tr><td class="col-md-2">' + value[1] + '</td><td class="col-md-2">' + value[2] +
+                      '</td><td class="col-md-6 abbreviation">' + value[3] + '</td>' + color
+                      '</tr>';
+        }
+        });
+          $('#sentimentGridData').html(resultHtml);
+          $('#gridDiv').css('display','block');
         },
         type: 'GET'
       });
+}
+function getKeywordsByQAKey(qakey){
+     var resultHtml = '';
+         $.ajax({
+        url: '/keywordsbyqakey/' + qakey,
+        error: function(err) {
+           console.log(err);
+        },
+        async:false,
+        dataType: 'json',
+        success: function(data) {
+          if(data.length > 0){
+          resultHtml ='<td class="col-md-4"> '
+        $.each(data, function(index, value){
+          var color = '';
+          color += value[3] === "positive" ? 'bggreen' : (value[3] === 'negative' ? 'bgred': 'bgblue');
+            resultHtml += '<div>' + value[2] + '</div>';
+        });
+        resultHtml += '</td>';
+        } else {
+        resultHtml = '<td class="col-md-4"> </td>'
+        }
+        },
+        type: 'GET'
+      });
+      return resultHtml;
 }
 function buildQandAResult(data){
   $.each(data, function(index, row){
@@ -788,6 +899,47 @@ function piechart(dataset, elementName){
   }
 </script>
 <style>
+td.bggreen  {
+
+    border: 25px solid green;
+    padding: 25px;
+    margin: 25px;
+}
+td.bgblue  {
+
+    border: 25px solid blue;
+    padding: 25px;
+    margin: 25px;
+}
+td.bgred  {
+
+    border: 25px solid red;
+    padding: 25px;
+    margin: 25px;
+}
+.table  {
+   table-layout:fixed;
+ }
+
+ .table td.abbreviation{
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+  }
+
+  td.abbreviation {
+    text-overflow: ellipsis;
+    overflow : hidden;
+    white-space: nowrap;
+}
+
+td.abbreviation:hover {
+    text-overflow: clip;
+    white-space: normal;
+    word-break: break-all;
+}
+
+.top-buffer { margin-top:20px; }
  .column {
     float: left;
     width: 50%;
