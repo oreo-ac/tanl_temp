@@ -1,0 +1,7 @@
+psycopg2
+flask
+gunicorn
+nltk
+snowballstemmer
+requests
+textblob
