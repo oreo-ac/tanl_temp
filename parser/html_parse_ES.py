@@ -78,6 +78,7 @@ def getPercentage(part, total):
     return pct
 
 def parseHTML(htmlData, pageId):
+    print("---------------Start-----------")
     summary = EarningsCall()
     soup = BeautifulSoup(str(htmlData), 'html.parser')
     body = soup.find("div", {"id": "a-body"})
@@ -104,7 +105,8 @@ def parseHTML(htmlData, pageId):
                 break
         elif str(type(child)) == "<class 'bs4.element.Tag'>":
             #print(child.string)
-            name, role = child.string.split("-", 1)
+            executiveText = child.string#.replace("", "-")
+            name, role = executiveText.split("-", 1)
             callParticipant = Participant()
             callParticipant.name = name.strip() #+pageId
             callParticipant.role = role.strip()
@@ -116,7 +118,17 @@ def parseHTML(htmlData, pageId):
         if innerAnchor and innerAnchor != -1:
             companyStockDetail = child.text
             # correct the regular expression
-            print(companyStockDetail)
+            #print(companyStockDetail)
+            if("slideshow" in companyStockDetail.strip().lower()):
+                #Skip teh View slide
+                summaryIndex = summaryIndex +2
+                child = childElements[summaryIndex]
+                innerAnchor = child.find("a")
+                #print(child)
+                if innerAnchor and innerAnchor != -1:
+                    companyStockDetail = child.text
+                #print(companyStockDetail)
+
             exchange = next(iter(re.findall(r"\((.*?):*\)", companyStockDetail)), None).split(":")[0]
             stockName = next(iter(re.findall(r"\(*:(.*?)\)", companyStockDetail)), None)
             company = next(iter(re.findall(r"(.*?)\(", companyStockDetail)), None)
@@ -242,6 +254,7 @@ def parseHTML(htmlData, pageId):
                     elif index == 2 and childContent["class"][0] == answerClass:
                         index = 3
                         # answeredBy = innerStrong.string
+                        #print(innerStrong)
                         answeredBy = innerStrong.string.split("-")[0].strip()
                     elif index == 4:  # Skip as we reached next highlited P, So treat as next question section
                         index = 5
@@ -342,8 +355,14 @@ if len(sys.argv) > 1:
                 data.ticker = summary.stock
                 data.year = summary.year
                 data.quarter = summary.quarter
-                data.question = objectQA.question.replace("\\'", "'")
-                data.answer = objectQA.answer.replace("\\'", "'")
+                if(objectQA.question is not None):
+                    data.question = objectQA.question.replace("\\'", "'")
+                else:
+                    data.question = ""
+                if(objectQA.answer is not None):
+                    data.answer = objectQA.answer.replace("\\'", "'")
+                else:
+                    data.answer = ""
                 data.exchange = summary.exchange
                 data.analyst_name = objectQA.questionedBy
                 anKeys = [item for item in summary.analysts if item.name.lower() == objectQA.questionedBy.lower()]
