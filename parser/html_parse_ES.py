@@ -115,15 +115,23 @@ def parseHTML(htmlData, pageId):
         innerAnchor = child.find("a")
         if innerAnchor and innerAnchor != -1:
             companyStockDetail = child.text
-            print(companyStockDetail)
             # correct the regular expression
+            print(companyStockDetail)
             exchange = next(iter(re.findall(r"\((.*?):*\)", companyStockDetail)), None).split(":")[0]
             stockName = next(iter(re.findall(r"\(*:(.*?)\)", companyStockDetail)), None)
             company = next(iter(re.findall(r"(.*?)\(", companyStockDetail)), None)
-            quarterYearInfo = next(iter(re.findall(r"\](.*?)", companyStockDetail)), None)
-            #print(quarterYearInfo)
+            #quarterYearInfo = next(iter(re.findall(r"\](.*?)", companyStockDetail)), None)
+            first, second = companyStockDetail.split(")", 1)
+            
+            if(second.strip()!=""):
+                quarterYearInfo = second.strip()
+            else:
+                quarterYearInfo = None
             if (quarterYearInfo == None or len(quarterYearInfo) <= 7):  # Q4 2017
-                quarterYearInfo = childElements[summaryIndex + 2].contents[0]
+                if(str(type(childElements[summaryIndex + 2].contents[0])) == "<class 'bs4.element.NavigableString'>"):
+                    quarterYearInfo = childElements[summaryIndex + 2].contents[0]
+                else:
+                    quarterYearInfo = childElements[summaryIndex + 2].contents[0].text
             quarter = ""
             year = ""
             if (quarterYearInfo != None and (
@@ -136,6 +144,7 @@ def parseHTML(htmlData, pageId):
             summary.stock = stockName.strip()
             summary.quarter = quarter
             summary.year = year
+            print(json.dumps(summary, default=obj_dict))
             break
     # ANALYSTS
     analysts = []
@@ -276,7 +285,16 @@ def check_if_exists_in_list(input_list, value):
     else:
         return False
 
-# return json_string
+def get_sentiment_by_blob(text):
+    blob = TextBlob(text)
+    # determine if sentiment is positive, negative, or neutral
+    if blob.sentiment.polarity < 0:
+        dataSentiment = "negative"
+    elif blob.sentiment.polarity == 0:
+        dataSentiment = "neutral"
+    else:
+        dataSentiment = "positive"
+    return dataSentiment
 
 # Main process
 if len(sys.argv) > 1:
@@ -340,17 +358,11 @@ if len(sys.argv) > 1:
                     data.executive_position = exKeys[0].role
                 else:
                     data.executive_position = ""
-                questionBlob = TextBlob(data.question)
-                # determine if sentiment is positive, negative, or neutral
-                if questionBlob.sentiment.polarity < 0:
-                    data.sentiment = "negative"
-                elif questionBlob.sentiment.polarity == 0:
-                    data.sentiment = "neutral"
-                else:
-                    data.sentiment = "positive"
+                data.sentiment = get_sentiment_by_blob(data.question)
+                data.answerSentiment = get_sentiment_by_blob(data.answer)
                 qaJSON = json.dumps(data, default=obj_dict)
-                es.index("qanda", "details", id = (int(reference) * 1000) +iQAcnt , body=qaJSON)
                 #es.delete("qanda", "details", id = (int(reference) * 1000) +iQAcnt)
+                es.index("qanda", "details", id = (int(reference) * 1000) +iQAcnt , body=qaJSON)
                 #es.delete("qanda", "details", body={"query": {"match_all": {}}})
                 
                 #http://localhost:9200/qanda/details/<<increment_number>>
@@ -364,41 +376,3 @@ if len(sys.argv) > 1:
 
 else:
     print("Expects HTML file root location")
-
-
-
-
-                
-                
-'''data.questionASW = removeStopWords(objectQA.question)
-data.answerASW = removeStopWords(objectQA.answer)
-data.refernceId = reference
-keys = word_tokenize(data.questionASW)
-keys = list(filter(lambda d: check_if_exists_in_list(fin_words_list, d.upper()), keys))
-ques_words = keys
-ques_words_WCnt = ([(d, len(list(filter(lambda k: d in k, keys)))) for d in set(keys)])
-data.questionASWCnt = []
-for wcnt in  ques_words_WCnt:
-    wordCnt = WordCount()
-    wordCnt.word = wcnt[0]
-    wordCnt.count = wcnt[1]
-    data.questionASWCnt.append(wordCnt)
-
-keys = word_tokenize(data.answerASW)
-keys = list(filter(lambda d: d.upper() in fin_words_list, keys))
-ans_words = keys
-ans_words_WCnt = ([(d, len(list(filter(lambda k: d in k, keys)))) for d in set(keys)])
-data.answerASWCnt = []
-for wcnt in  ans_words_WCnt:
-    wordCnt = WordCount()
-    wordCnt.word = wcnt[0]
-    wordCnt.count = wcnt[1]
-    data.answerASWCnt.append(wordCnt)
-data.ques_pos_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_pos, d.upper()), ques_words)))
-data.ques_neg_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_neg, d.upper()), ques_words)))
-data.ques_neu_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_neu, d.upper()), ques_words)))
-
-data.ans_pos_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_pos, d.upper()), ans_words)))
-data.ans_neg_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_neg, d.upper()), ans_words)))
-data.ans_neu_words = len(list(filter(lambda d: check_if_exists_in_list(fin_words_list_neu, d.upper()), ans_words)))
-'''
