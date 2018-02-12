@@ -35,6 +35,7 @@ def search_results(code):
             "analyst_container": [],
             "main_container": []
         }
+
     else:
         response = helpers.get_data(search_response, year, quarter, temp, yearquarter)
         

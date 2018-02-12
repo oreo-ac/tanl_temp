@@ -81,7 +81,7 @@ def get_data(search_type, inp_year, inp_quarter, temp_keywords, yearquarter):
     
     input_json = {
         "_source": {
-            "includes": [ "year", "quarter", "question", "sentiment"]
+            "includes": [ "year", "quarter", "question", "sentiment","company"]
         },
         "size": 1000,
         "query" : {
@@ -169,6 +169,7 @@ def get_data(search_type, inp_year, inp_quarter, temp_keywords, yearquarter):
             questions.append({
                 "year": question["_source"]["year"],
                 "quarter": question["_source"]["quarter"],
+                "company": question["_source"]["company"],
                 "question": question["_source"]["question"],
                 "sentiment": question["_source"]["sentiment"]
             })

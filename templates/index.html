@@ -90,13 +90,13 @@
 /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
 .show {display:block;}
 .positive {
-  color:#00a65a;
+  color:#006600;
 }
 .neutral {
-  color:#3c8dbc;
+  color:#b30000;
 }
 .negative {
-  color:#f56954;
+  color:#262673;
 }
     </style>
 </head>
@@ -127,15 +127,15 @@
       </div>
       <div class="col-sm-2" style="border-radius:10px; margin-top:7px;">
         <span id="pieChart" onclick="selectChart('pie', this);" class="selectedChart chartoption fa fa-pie-chart" 
-                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#2F038B"></span>
+                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
         <span id="areaChart" onclick="selectChart('area', this);" class="chartoption fa fa-area-chart" 
-                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#2F038B"></span>
+                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
         <span id="barChart" onclick="selectChart('bar', this);" class="chartoption fa fa-bar-chart" 
-                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#2F038B"></span>
+                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
         <span id="stackedChart" onclick="selectChart('stacked', this);" class="chartoption fa fa-bar-chart-o" 
-                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#2F038B"></span>
+                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
         <span id="lineChart" onclick="selectChart('line', this);" class="chartoption fa fa-line-chart" 
-                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#2F038B"></span>
+                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
       </div>
     </div>
     <br/>
@@ -212,6 +212,7 @@
             </div>
           </div>
       </div>
+
       <div class="windowContYellow">
           <div class="table-responsive" id="sentimentGrid">
               <table class="table">
@@ -219,6 +220,7 @@
                   <tr>
                     <th class="" width="10px">Year</th>
                     <th class="" width="10px">Quarter</th>
+                    <th class="" width="10%">Company</th>
                     <th width="60%">Question</th>
                     <th width="30%">Keyword</th>
                   </tr>
@@ -436,6 +438,7 @@ $.ready(function(){
               "<tr>" + 
               "   <td>" + row.year + "</td>" +
               "   <td>" + row.quarter + "</td>" +
+              "   <td>" + row.company + "</td>" +
               "   <td class='" + row.sentiment + "'>" + row.question + "</td>" +
               "   <td>" + row.sentiment + "</td>" +
               "</tr>"    
@@ -851,8 +854,8 @@ function piechart(dataset, elementName){
 }
 
 .windowContViolet {
-  background-color: #00CCCC;
-  color:white;
+  background-color: #d6d6c2;
+  color:black;
   margin-top:20px;
   margin-right:10px;
   border-radius:10px; 
@@ -865,8 +868,8 @@ function piechart(dataset, elementName){
 }
 
 .windowContSeal {
-  background-color: #00CCCC;
-  color:white;
+  background-color: #d6d6c2;
+  color:black;
   margin-top:20px;
   margin-right:10px;
   padding-top:25px;
@@ -880,8 +883,8 @@ function piechart(dataset, elementName){
 }
 
 .windowContBlue {
-  background-color: #00CCCC;
-  color:white;
+  background-color: #d6d6c2;
+  color:black;
   margin-top:20px;
   padding-top:15px;
   padding-left:10px;
@@ -895,8 +898,8 @@ function piechart(dataset, elementName){
 }
 
 .windowContRed {
-  background-color: #00CCCC;
-  color:white;
+  background-color: #d6d6c2;
+  color:black;
   margin-top:10px;
   margin-right:10px;
   border-radius:10px; 
@@ -909,8 +912,8 @@ function piechart(dataset, elementName){
 }
 
 .windowContYellow {
-  background-color: #00CCCC;
-  color:white;
+  background-color: #d6d6c2;
+  color:black;
   margin-top:10px;
   margin-right:10px;
   border-radius:10px; 
