@@ -1,7 +1,17 @@
 import requests
 from textblob import TextBlob
 import json
+import nltk
+from nltk.corpus import stopwords, words
+from nltk.stem.snowball import SnowballStemmer
+import collections
 
+stemmer = SnowballStemmer("english")
+nltk.download('stopwords')
+stop_words = set(stopwords.words('english'))
+stop_words.add(".")
+stop_words.add(",")
+stop_words.add("%")
 es_url = "https://search-tanl-nswk7nthqjskczmapaqzga3c2q.us-east-1.es.amazonaws.com/"
 search_type_index = "search/types/"
 qanda_index = "qanda/details/"
@@ -78,7 +88,6 @@ def clean_search_text(search_text):
     return year, quarter, temp_ticker, yearquarter
 
 def get_data(search_type, inp_year, inp_quarter, temp_keywords, yearquarter):
-    
     input_json = {
         "_source": {
             "includes": [ "year", "quarter", "question", "sentiment","company"]
@@ -175,7 +184,12 @@ def get_data(search_type, inp_year, inp_quarter, temp_keywords, yearquarter):
                 "sentiment": question["_source"]["sentiment"]
             })
             allquestions.append({"questions": question["_source"]["question"]})
-        
+        questionText = " ".join(q["questions"] for q in allquestions)
+        blob = TextBlob(questionText.lower())
+        #words = [stemmer.stem(word) for word in blob.words if word not in stop_words]
+        words = [word for word in blob.words if word not in stop_words]
+        frequency = {}
+        wordCloud = ([(word, len(list(filter(lambda k: word in k, words)))) for word in set(words)])
         tickers = []
         ticker_output = json.loads(response.text)["aggregations"]["tickerAgg"]["buckets"]    
         for ticker in ticker_output:
@@ -365,7 +379,7 @@ def get_data(search_type, inp_year, inp_quarter, temp_keywords, yearquarter):
         else:
             average_questions = round(total_questions/total_transcripts,0)
             average_analysts = round(total_analysts/total_transcripts,0)
-        return {
+        result = {
             "analyst_container": analyst_container,
             "main_container": main_container,
             "table_container": questions,
@@ -383,8 +397,10 @@ def get_data(search_type, inp_year, inp_quarter, temp_keywords, yearquarter):
                 "average_questions": average_questions,
                 "total_analysts": total_analysts,
                 "average_analysts": average_analysts
-            }
+            },
+            "wordCloud":wordCloud
         }
+        return result
     else:
         print("Error:" + str(response.text))
         return []
