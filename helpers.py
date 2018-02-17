@@ -163,7 +163,8 @@ def get_data(search_type, inp_year, inp_quarter, temp_keywords, yearquarter):
     main_container = []
     if str(response.status_code) == "200":
         questions = []
-        questions_output = json.loads(response.text)["hits"]["hits"]   
+        allquestions = []
+        questions_output = json.loads(response.text)["hits"]["hits"]
         for question in questions_output:
             
             questions.append({
@@ -173,6 +174,7 @@ def get_data(search_type, inp_year, inp_quarter, temp_keywords, yearquarter):
                 "question": question["_source"]["question"],
                 "sentiment": question["_source"]["sentiment"]
             })
+            allquestions.append({"questions": question["_source"]["question"]})
         
         tickers = []
         ticker_output = json.loads(response.text)["aggregations"]["tickerAgg"]["buckets"]    
@@ -354,7 +356,7 @@ def get_data(search_type, inp_year, inp_quarter, temp_keywords, yearquarter):
             result_dict["chartType"] = default_chart
             result_dict["colors"] = colors
             result_dict["data"] = temp_container
-
+            result_dict["questions"] = allquestions
 
             main_container = result_dict
         if total_transcripts == 0:
