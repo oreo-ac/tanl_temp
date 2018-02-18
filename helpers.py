@@ -90,7 +90,7 @@ def clean_search_text(search_text):
 def get_data(search_type, inp_year, inp_quarter, temp_keywords, yearquarter):
     input_json = {
         "_source": {
-            "includes": [ "year", "quarter", "question", "sentiment","company"]
+            "includes": [ "year", "quarter", "question", "sentiment","company" ,"answer"]
         },
         "size": 1000,
         "query" : {
@@ -173,6 +173,7 @@ def get_data(search_type, inp_year, inp_quarter, temp_keywords, yearquarter):
     if str(response.status_code) == "200":
         questions = []
         allquestions = []
+        questionandanswer=[]
         questions_output = json.loads(response.text)["hits"]["hits"]
         for question in questions_output:
             
@@ -181,9 +182,12 @@ def get_data(search_type, inp_year, inp_quarter, temp_keywords, yearquarter):
                 "quarter": question["_source"]["quarter"],
                 "company": question["_source"]["company"],
                 "question": question["_source"]["question"],
-                "sentiment": question["_source"]["sentiment"]
+                "sentiment": question["_source"]["sentiment"],
+                "answer": question["_source"]["answer"],
+                "questionandanswer": "Q: " + question["_source"]["question"] + "<br/>   A: " + question["_source"]["answer"]
             })
             allquestions.append({"questions": question["_source"]["question"]})
+            questionandanswer.append({"questionandanswer" : "Q: " + question["_source"]["question"] + "A:" + question["_source"]["answer"]})
         questionText = " ".join(q["questions"] for q in allquestions)
         blob = TextBlob(questionText.lower())
         #words = [stemmer.stem(word) for word in blob.words if word not in stop_words]

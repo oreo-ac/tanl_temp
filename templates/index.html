@@ -93,10 +93,10 @@
   color:#006600;
 }
 .neutral {
-  color:#b30000;
+  color:#262673;
 }
 .negative {
-  color:#262673;
+  color:#b30000;
 }
     </style>
 </head>
@@ -146,7 +146,7 @@
     <div class="row" style="margin-left:15px">
       <div class="windowContViolet">
         <div class="row" style="padding:10px;width:100%;text-align:center">
-          <span style="font-size: 12pt">Metrics</span>
+          <span style="font-size: 12pt; font-weight: bold;">Metrics</span>
         </div>
         <div class="row" style="padding-left:25px;padding-right:25px;width:100%">
             <div>
@@ -162,7 +162,7 @@
       </div>
       <div class="windowContBlue">
           <div class="row" style="width:100%;text-align:center">
-              <span style="font-size: 12pt">Search Results</span>
+              <span style="font-size: 12pt; font-weight: bold;">Search Results</span>
             </div>
             <div class="row" style="padding-left:25px;padding-right:25px;width:100%">
                 <div>
@@ -206,7 +206,7 @@
       </div>
       <div class="windowContRed">
         <div class="row" style="padding:10px;width:100%;text-align:center">
-          <span style="font-size: 12pt">Analysts</span>
+          <span style="font-size: 12pt; font-weight: bold;">Analysts</span>
         </div>
         <div class="row" style="padding-left:25px;padding-right:25px;width:100%">
             <div>
@@ -220,11 +220,11 @@
               <table class="table">
                 <thead>
                   <tr>
-                    <th class="" width="10px">Year</th>
-                    <th class="" width="10px">Quarter</th>
+                    <th class="" width="5%">Year</th>
+                    <th class="" width="7%">Quarter</th>
                     <th class="" width="10%">Company</th>
-                    <th width="60%">Question</th>
-                    <th width="30%">Keyword</th>
+                    <th width="60%">Question and Answer</th>
+                    <th width="20%">Keyword</th>
                   </tr>
                 </thead>
                <tbody id="sentimentGridData"></tbody>
@@ -442,7 +442,7 @@ $.ready(function(){
               "   <td>" + row.year + "</td>" +
               "   <td>" + row.quarter + "</td>" +
               "   <td>" + row.company + "</td>" +
-              "   <td class='" + row.sentiment + "'>" + row.question + "</td>" +
+              "   <td class='" + row.sentiment + " abbreviation'>" + row.questionandanswer + "</td>" +
               "   <td>" + row.sentiment + "</td>" +
               "</tr>"    
    });
@@ -830,12 +830,26 @@ function piechart(dataset, elementName){
    overflow: hidden;
    text-overflow: ellipsis;
 }
+.table  {
+ table-layout:fixed;
+ }
 
-.qadetails {
-  height:10px;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
+.table td.abbreviation{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+ }
+  td.abbreviation {
+    text-overflow: ellipsis;
+    overflow : hidden;
+    white-space: nowrap;
+ }
+
+ td.abbreviation:hover {
+    text-overflow: clip;
+    white-space: normal;
+    word-break: break-all;
+ }
 
 /* Clear floats after the columns */
 .row:after {
