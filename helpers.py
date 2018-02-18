@@ -77,7 +77,7 @@ def clean_search_text(search_text):
     
     return year, quarter, temp_ticker, yearquarter
 
-def get_data(search_type, inp_year, inp_quarter, temp_keywords, yearquarter):
+def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter):
     
     input_json = {
         "_source": {
@@ -161,18 +161,22 @@ def get_data(search_type, inp_year, inp_quarter, temp_keywords, yearquarter):
 
     analyst_container = []
     main_container = []
+     
     if str(response.status_code) == "200":
         questions = []
         allquestions = []
         questions_output = json.loads(response.text)["hits"]["hits"]
         for question in questions_output:
-            
+            print(question["_source"]["question"])
+            blob = TextBlob(question["_source"]["question"], classifier=cl)
+            print(blob.classify())
             questions.append({
                 "year": question["_source"]["year"],
                 "quarter": question["_source"]["quarter"],
                 "company": question["_source"]["company"],
                 "question": question["_source"]["question"],
-                "sentiment": question["_source"]["sentiment"]
+                "sentiment": question["_source"]["sentiment"],
+                "category": blob.classify()
             })
             allquestions.append({"questions": question["_source"]["question"]})
         

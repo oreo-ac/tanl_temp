@@ -3,7 +3,7 @@ import sys
 import json
 import base64
 import helpers
-
+from sklearn.externals import joblib
 from nltk.tokenize import word_tokenize, sent_tokenize
 import nltk
 from nltk.corpus import stopwords
@@ -18,7 +18,7 @@ except Exception as e:
     pass
 
 app = Flask(__name__, static_url_path='/assets', static_folder="assets")
-
+cl = joblib.load('modelfile.pkl')
 @app.route("/")
 def hello():
     host_url = request.headers["Host"]
@@ -37,7 +37,7 @@ def search_results(code):
         }
 
     else:
-        response = helpers.get_data(search_response, year, quarter, temp, yearquarter)
+        response = helpers.get_data(cl, search_response, year, quarter, temp, yearquarter)
         
     return jsonify(response)
 

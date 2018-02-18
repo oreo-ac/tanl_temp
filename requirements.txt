@@ -5,3 +5,5 @@ nltk
 snowballstemmer
 requests
 textblob
+sklearn
+scipy
