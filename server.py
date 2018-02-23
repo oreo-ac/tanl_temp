@@ -19,17 +19,40 @@ except Exception as e:
 
 app = Flask(__name__, static_url_path='/assets', static_folder="assets")
 cl = joblib.load('modelfile.pkl')
-@app.route("/")
-def hello():
-    host_url = request.headers["Host"]
-    return render_template("index.html", **locals())
 
-@app.route("/search/<string:code>/", methods=['GET'])
-def search_results(code):
+@app.route("/")
+def login():
+    userid = ""
+    error_message = ""
+    host_url = request.headers["Host"]
+    return render_template("login.html", **locals())
+
+@app.route("/register/")
+def register():
+    host_url = request.headers["Host"]
+    return render_template("register.html", **locals())
+
+@app.route("/main", methods=['POST'])
+def hello():
+    userid = request.form.get("userid")
+    password = request.form.get("password")
+    auth_code = helpers.get_users(userid, password)
+    host_url = request.headers["Host"]
+    if auth_code == 1:
+        error_message = "Email not registered yet"
+        return render_template("login.html", **locals())
+    elif auth_code == 2:
+        error_message = "Password incorrect"
+        return render_template("login.html", **locals())
+    else:
+        return render_template("index.html", **locals())
+
+@app.route("/search/<string:context>/<string:code>/", methods=['GET'])
+def search_results(context, code):
     year, quarter, temp, yearquarter = helpers.clean_search_text(code)
     search_response = helpers.get_search_types(code)
     search_response = search_response["hits"]
-    
+    print(context)
     if 0 == 1:
         response = {
             "analyst_container": [],
@@ -37,7 +60,7 @@ def search_results(code):
         }
 
     else:
-        response = helpers.get_data(cl, search_response, year, quarter, temp, yearquarter)
+        response = helpers.get_data(cl, search_response, year, quarter, temp, yearquarter, context)
         
     return jsonify(response)
 

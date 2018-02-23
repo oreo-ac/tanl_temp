@@ -106,9 +106,11 @@
     <div class="col-sm-3">
       <span style="font-size:20px;margin-left:15px">tAnL</span>
     </div>
-    <div class="input-group col-sm-6" align="center" style="margin-top:5px">
+    <div class="col-sm-6" align="center" style="margin-top:5px">
         
     </div>
+    <div class="col-sm-3" style="text-align:right;color:white"><a style="color:white" onclick="location.href='/'">SignOut</a></div>
+    
   </div>
 
   <!-- Content Wrapper. Contains page content -->
@@ -220,10 +222,10 @@
               <table class="table">
                 <thead>
                   <tr>
-                    <th class="" width="10px">Year</th>
-                    <th class="" width="10px">Quarter</th>
-                    <th class="" width="15%">Company</th>
-                    <th width="60%">Question</th>
+                    <th class="" width="5%">Year</th>
+                    <th class="" width="6%">Quarter</th>
+                    <th class="" width="19%">Company</th>
+                    <th width="50%">Question</th>
                     <th width="20%">Category</th>
 
                   </tr>
@@ -244,20 +246,16 @@
 <!-- ./wrapper -->
 <input type="hidden" id="selected_option"/>
 
-<input type="hidden" id="searchKey"/>
+<input type="hidden" id="searchKeyTicker"/>
+<input type="hidden" id="searchKeyAnalyst"/>
+<input type="hidden" id="searchKeyTable"/>
+<input type="hidden" id="searchKeyChart"/>
+<input type="hidden" id="searchKeyMetric"/>
 <!-- jQuery 3 -->
 <script src="/assets/bower_components/jquery/dist/jquery.min.js"></script>
 <!-- jQuery UI 1.11.4 -->
 <script src="/assets/bower_components/jquery-ui/jquery-ui.min.js"></script>
 <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
-<script>
-  $.widget.bridge('uibutton', $.ui.button);
-
-  function searchChange(ctl){
-      $('#tempDisplay').text($(ctl).val())
-    }
-
-</script>
 <!-- Bootstrap 3.3.7 -->
 <script src="/assets/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
 <!-- Morris.js charts -->
@@ -294,54 +292,148 @@
 <script type="text/javascript">
 
 
-var words = [
-  {text: "Connection", weight: 13},
-  {text: "Financial", weight: 10.5},
-  {text: "Risk", weight: 9.4},
-  {text: "Loss", weight: 8},
-  {text: "improvement", weight: 6.2},
-  {text: "Consectetur", weight: 5},
-  {text: "Adipiscing", weight: 5},
-  /* ... */
-];
-
-
-$.ready(function(){
-  $(".dropdown-content").each(function(){
-      $(this).removeClass("show");
-    });
-
-
-})
   function searchChange(ctl){
-    search_text = $(ctl).val();
-    $.ajax({
-        url: '/search/' + search_text,
-        error: function() {
-            //$('#searchNotification').html('<p>An error has occurred</p>');
-            
-        },
-        dataType: 'json',
-        success: function(data) {
-            build_table_results(data);
-        },
-        type: 'GET'
-      });
+    //search_text = $(ctl).val();
+    //if (search_text === ""){
+    //    search_text = "a"
+    //}
+    //search_api_call(search_text, "ticker");
+    //search_api_call(search_text, "analyst");
+    //search_api_call(search_text, "chart");
+    //search_api_call(search_text, "table");
+
   }
-  function option_click(ctl){
-    $('#myDropdown').removeClass("show");
-    $('#searchKey').val('')
-    $("#searchBox").val($(ctl).html())
-    $('#searchKey').val($(ctl).attr('data-key'));
-    searchResults($(ctl).html());
-    getQandA($(ctl).attr('data-key'));
-    getKeywords($(ctl).attr('data-key'));
-    getMetrics($(ctl).attr('data-key'));
-    qandaBySearch($(ctl).attr('data-key'));
-    qandaBySearchGrid($(ctl).attr('data-key'));
+  setInterval(search_api_analyst,500);
+
+  setInterval(search_api_ticker,500);
+
+  setInterval(search_api_table,500);
+
+  setInterval(search_api_chart,500);
+
+
+  function search_api_ticker(){
+      search_context = "ticker"
+      search_text = $('#searchBox').val();
+      if (search_text === ""){
+        search_text = "a"
+      }
+      if (search_text != $("#searchKeyTicker").val()){
+          $('#searchKeyTicker').val(search_text)
+          $.ajax({
+            url: '/search/' + search_context + '/' + search_text,
+            error: function() {
+                //$('#searchNotification').html('<p>An error has occurred</p>');
+
+            },
+            async: true,
+            dataType: 'json',
+            success: function(data) {
+                build_search_results(data);
+            },
+            type: 'GET'
+          });
+      }
   }
 
-  function build_table_results(rows){
+  function search_api_analyst(){
+      search_context = "analyst"
+      search_text = $('#searchBox').val();
+      if (search_text === ""){
+        search_text = "a"
+      }
+      if (search_text != $("#searchKeyAnalyst").val()){
+          $('#searchKeyAnalyst').val(search_text)
+          $.ajax({
+            url: '/search/' + search_context + '/' + search_text,
+            error: function() {
+                //$('#searchNotification').html('<p>An error has occurred</p>');
+
+            },
+            async: true,
+            dataType: 'json',
+            success: function(data) {
+                build_analyst_results(data);
+            },
+            type: 'GET'
+          });
+      }
+  }
+
+  function search_api_chart(){
+      search_context = "chart"
+      search_text = $('#searchBox').val();
+      if (search_text === ""){
+        search_text = "a"
+      }
+      if (search_text != $("#searchKeyChart").val()){
+          $('#searchKeyChart').val(search_text)
+          $.ajax({
+            url: '/search/' + search_context + '/' + search_text,
+            error: function() {
+                //$('#searchNotification').html('<p>An error has occurred</p>');
+
+            },
+            async: true,
+            dataType: 'json',
+            success: function(data) {
+                build_chart_results(data);
+            },
+            type: 'GET'
+          });
+      }
+  }
+
+  function search_api_metric(){
+      search_context = "metric"
+      search_text = $('#searchBox').val();
+      if (search_text === ""){
+        search_text = "a"
+      }
+      if (search_text != $("#searchKeyMetric").val()){
+          $('#searchKeyMetric').val(search_text)
+          $.ajax({
+            url: '/search/' + search_context + '/' + search_text,
+            error: function() {
+                //$('#searchNotification').html('<p>An error has occurred</p>');
+
+            },
+            async: true,
+            dataType: 'json',
+            success: function(data) {
+                build_metric_results(data);
+            },
+            type: 'GET'
+          });
+      }
+  }
+
+    function search_api_table(){
+      search_context = "table"
+      search_text = $('#searchBox').val();
+      if (search_text === ""){
+        search_text = "a"
+      }
+      if (search_text != $("#searchKeyTable").val()){
+          $('#searchKeyTable').val(search_text)
+          $.ajax({
+            url: '/search/' + search_context + '/' + search_text,
+            error: function() {
+                //$('#searchNotification').html('<p>An error has occurred</p>');
+
+            },
+            async: true,
+            dataType: 'json',
+            success: function(data) {
+                build_table_grid_results(data);
+            },
+            type: 'GET'
+          });
+      }
+  }
+
+
+function build_search_results(rows){
     temp_html = ""
     tickers = rows.search_results.tickers
     for(i=0;i<tickers.length;i++){
@@ -369,10 +461,9 @@ $.ready(function(){
       temp_html = temp_html + "<div>" + report_types[i] + "</div>"
     }
     $("#search_result_type").html(temp_html)
+}
 
-
-
-
+function build_analyst_results(rows){
     temp_html = ""
     $.each(rows.analyst_container, function(index,row){
     /*Key is the collection of the different search patterns and the value is the id*/
@@ -389,6 +480,9 @@ $.ready(function(){
    });
 
     $("#analyst_container").html(temp_html);
+}
+
+function build_metric_results(rows){
     temp_html = ""
     temp_html = temp_html + "<div class='row' style='margin-top:7px'>" + 
         " <div class='col-sm-9' style='padding-top:0px;text-align:right'>Total Questions</div>" + 
@@ -434,7 +528,9 @@ $.ready(function(){
         "</div>"
     
     $("#metric_container").html(temp_html);
-  
+}
+
+function build_table_grid_results(rows){
     temp_html = ""
     $.each(rows.table_container, function(index,row){
     /*Key is the collection of the different search patterns and the value is the id*/
@@ -443,7 +539,7 @@ $.ready(function(){
               "   <td>" + row.year + "</td>" +
               "   <td>" + row.quarter + "</td>" +
               "   <td>" + row.company + "</td>" +
-              "   <td class='" + row.sentiment + "'>" + row.question + "</td>" +
+              "   <td>" + row.question + "</td>" +
               "   <td>" + row.category + "</td>" +
 
               "</tr>"    
@@ -453,7 +549,9 @@ $.ready(function(){
     //$(".dropdown-content").each(function(){
     //  $(this).addClass("show");
     //})
+}
 
+function build_chart_results(rows){
     temp_html = ""
     console.log(rows.main_container.data)
           group = rows.main_container.data
@@ -474,12 +572,8 @@ $.ready(function(){
                                   '</div>' +
                                 '</div>' +
                                 '<div id="wordcloudContainer" class="chartCont" style="display:inline-block;width:100%" >' +
-                                  '<div id="chart_wordcloud" class="wordcloud chart-container1">'          
-                                for(i=0;i<rows.wordCloud.length;i++){
-                                  temp1_html = temp1_html + '<span data-weight="'+ rows.wordCloud[i][1]+'">' + rows.wordCloud[i][0] +'</span>'
-                                }
-                                  //'<span data-weight="100">quisqu</span><span data-weight="27">egesta</span><span data-weight="38">puru</span><span data-weight="43">risu</span><span data-weight="20">ultrici</span><span data-weight="19">sodal</span><span data-weight="26">matti</span><span data-weight="31">ornar</span><span data-weight="16">dignissim</span><span data-weight="27">lacu</span><span data-weight="18">ultric</span><span data-weight="16">elementum</span><span data-weight="31">lacinia</span><span data-weight="65">amet</span><span data-weight="37">nisl</span><span data-weight="35">tincidunt</span><span data-weight="30">magna</span><span data-weight="40">lorem</span><span data-weight="29">auctor</span><span data-weight="20">viverra</span><span data-weight="19">fermentum</span><span data-weight="55">nulla</span><span data-weight="36">enim</span><span data-weight="12">conval</span><span data-weight="25">tempu</span><span data-weight="29">justo</span><span data-weight="35">feli</span><span data-weight="25">faucibu</span><span data-weight="33">cursu</span><span data-weight="90"><a href="http://google.com">google</a></span><span data-weight="23">luctu</span><span data-weight="26">posuer</span><span data-weight="30">malesuada</span><span data-weight="35">diam</span><span data-weight="37">vestibulum</span><span data-weight="36">ipsum</span><span data-weight="4">primi</span><span data-weight="25">orci</span><span data-weight="4">cubilia</span><span data-weight="4">cura</span><span data-weight="22">proin</span><span data-weight="25">scelerisqu</span><span data-weight="34">velit</span><span data-weight="25">pretium</span><span data-weight="33">quam</span><span data-weight="23">consectetur</span><span data-weight="25">semper</span><span data-weight="39">turpi</span><span data-weight="30">nisi</span><span data-weight="63">vita</span><span data-weight="18">suscipit</span><span data-weight="32">nequ</span><span data-weight="19">morbi</span><span data-weight="22">lectu</span><span data-weight="19">molesti</span><span data-weight="19">nullam</span><span data-weight="18">consequat</span><span data-weight="14">bibendum</span><span data-weight="19">rutrum</span><span data-weight="12">venenati</span><span data-weight="38">dolor</span><span data-weight="27">pulvinar</span><span data-weight="55">aliquam</span><span data-weight="38">erat</span><span data-weight="28">volutpat</span><span data-weight="35">nibh</span><span data-weight="23">eleifend</span><span data-weight="23">fringilla</span><span data-weight="22">aenean</span><span data-weight="23">tortor</span><span data-weight="22">hendrerit</span><span data-weight="47">pellentesqu</span><span data-weight="35">ligula</span><span data-weight="51">nunc</span><span data-weight="26">ullamcorp</span><span data-weight="19">sollicitudin</span><span data-weight="23">placerat</span><span data-weight="16">blandit</span><span data-weight="35">odio</span><span data-weight="21">euismod</span><span data-weight="30">adipisc</span><span data-weight="46">elit</span><span data-weight="21">suspendiss</span><span data-weight="19">sagitti</span><span data-weight="26">vehicula</span><span data-weight="38">augu</span><span data-weight="59">eget</span><span data-weight="21">molli</span><span data-weight="18">iaculi</span><span data-weight="24">tempor</span><span data-weight="21">integer</span><span data-weight="32">facilisi</span><span data-weight="15">vivamu</span><span data-weight="6">habit</span><span data-weight="24">tristiqu</span><span data-weight="6">senectu</span><span data-weight="6">netu</span><span data-weight="6">fame</span><span data-weight="38">urna</span><span data-weight="21">imperdiet</span><span data-weight="22">tellu</span><span data-weight="19">gravida</span><span data-weight="21">condimentum</span><span data-weight="54">donec</span><span data-weight="19">loborti</span><span data-weight="28">sapien</span><span data-weight="19">porta</span><span data-weight="21">dapibu</span><span data-weight="16">dictum</span><span data-weight="18">pharetra</span><span data-weight="43">arcu</span><span data-weight="16">phasellu</span><span data-weight="17">vulput</span><span data-weight="7">habitass</span><span data-weight="7">platea</span><span data-weight="7">dictumst</span><span data-weight="22">libero</span><span data-weight="22">curabitur</span><span data-weight="24">aliquet</span><span data-weight="26">congu</span><span data-weight="16">maecena</span><span data-weight="3">class</span><span data-weight="3">aptent</span><span data-weight="3">taciti</span><span data-weight="3">sociosqu</span><span data-weight="3">litora</span><span data-weight="3">torquent</span><span data-weight="3">conubia</span><span data-weight="3">nostra</span><span data-weight="3">incepto</span><span data-weight="3">himenaeo</span><span data-weight="21">porttitor</span><span data-weight="21">laoreet</span><span data-weight="26">feugiat</span><span data-weight="23">massa</span><span data-weight="27">metu</span><span data-weight="13">etiam</span><span data-weight="3">potenti</span><span data-weight="16">fusc</span><span data-weight="25">interdum</span><span data-weight="19">praesent</span><span data-weight="26">accumsan</span><span data-weight="15">rhoncu</span><span data-weight="16">commodo</span><span data-weight="16">variu</span><span data-weight="5">socii</span><span data-weight="5">natoqu</span><span data-weight="5">penatibu</span><span data-weight="5">magni</span><span data-weight="5">parturi</span><span data-weight="5">mont</span><span data-weight="5">nascetur</span><span data-weight="25">ridiculu</span>' +
-                                temp1_html = temp1_html + '</div>' +
+                                  '<div id="chart_wordcloud" class="wordcloud chart-container1">' +
+                                  '</div>' +
                                 '</div>'
 
       
@@ -539,93 +633,9 @@ $.ready(function(){
 				});
     }
 
-  function callQandA(){
-  var key = $('#searchKey').val();
-  if(key){
-    //getQandA(key);
-    getKeywords(key);
-    }
-  }
-function getQandA(search_key){
-     $.ajax({
-        url: '/getqanda/' + search_key,
-        error: function(err) {
-           console.log(err);
-           //$('#qanda').html("Error retrieving Question and Answers")
-        },
-        dataType: 'json',
-        success: function(data) {
-            buildQandAResult(data)
-        },
-        type: 'GET'
-      });
-}
-function getKeywords(search_key){
-var result = '';
-     $.ajax({
-        url: '/keywords/' + search_key,
-        error: function(err) {
-           console.log(err);
-            //$('#keywords').html("Error retrieving keywords")
-        },
-        dataType: 'json',
-        success: function(data) {
 
-          temp_html = ""
-          $(".keywordRow").each(function(){
-            $(this).remove()
-          })
-          for(i=0;i<data.length;i++){
-              temp_html = temp_html + '<tr class="keywordRow" style="font-size: 9pt">' +
-                  '  <td>' + data[i]["keyword"] + '</td>' +
-                  '  <td>' + data[i]["count"] + '</td>' + 
-                  '</tr>'
-          }
-          $('#keywordTable').append(temp_html);
-        },
-        type: 'GET'
-      });
-}
 
-function getMetrics(search_key){
-var result = '';
-     $.ajax({
-        url: '/metrics/' + search_key,
-        error: function(err) {
-           console.log(err);
-            $('#metrics').html("Error retrieving keywords")
-        },
-        dataType: 'json',
-        success: function(data) {
-        result = data.join();
-          $('#metrics').html(result);
-          $('#metricsId').css('display','block');
-        },
-        type: 'GET'
-      });
-}
 
-function qandaBySearch(search_key){
-var result = '';
-     $.ajax({
-        url: '/qanda/' + search_key,
-        error: function(err) {
-           console.log(err);
-            $('#qanda').html("Error retrieving keywords")
-        },
-        dataType: 'json',
-        success: function(data) {
-        result = data.join();
-          $('#qanda').html(result);
-        },
-        type: 'GET'
-      });
-}
-function buildQandAResult(data){
-  $.each(data, function(index, row){
-    //$('#questionId').html(index);
-  });
-}
 
  function selectWordCloud(type){
 $('.chartoption').each(function(){
@@ -653,173 +663,7 @@ function selectChart(type){
 
 }
 
-function getKeywordsByQAKey(qakey){
-     var resultHtml = '';
-         $.ajax({
-        url: '/keywordsbyqakey/' + qakey,
-        error: function(err) {
-           console.log(err);
-        },
-        async:false,
-        dataType: 'json',
-        success: function(data) {
-          if(data.length > 0){
-          resultHtml ='<td class="col-md-4"> '
-        $.each(data, function(index, value){
-          var color = '';
-          color += value[3] === "positive" ? 'bggreen' : (value[3] === 'negative' ? 'bgred': 'bgblue');
-            resultHtml += '<div>' + value[2] + '</div>';
-        });
-        resultHtml += '</td>';
-        } else {
-        resultHtml = '<td class="col-md-5"> </td>'
-        }
-        },
-        type: 'GET'
-      });
-      return resultHtml;
-}
 
-function qandaBySearchGrid(search_key){
-  var result = '';
-     $.ajax({
-        url: '/qanda/' + search_key,
-        error: function(err) {
-           console.log(err);
-            //$('#sentimentGrid').html("Error retrieving QandA");
-            // $('#gridDiv').css('display','block');
-        },
-        dataType: 'json',
-        success: function(data) {
-        var resultHtml = '';
-        $.each(data, function(index, value){
-        if(index > 0){
-         //var color = getKeywordsByQAKey(value[4]);
-        var color="<td class='col-sm-5'></td>"
-         resultHtml += '<tr><td class="">' + value[1] + '</td><td class="">' + 
-                      value[2] +
-                      '</td><td class="col-md-6" style="line-height:20px">' + value[3] + '</td>' + color
-                      '</tr>';
-        }
-        });
-          $('#sentimentGridData').html(resultHtml);
-          $('#gridDiv').css('display','block');
-        },
-        type: 'GET'
-      });
-}
-
-function piechart(dataset, elementName){
-    var pie=d3.layout.pie()
-            .value(function(d){return d.percent})
-            .sort(null)
-            .padAngle(.03);
-
-    var w=200,h=200;
-
-    var outerRadius=w/2;
-    var innerRadius=65;
-
-    var color = d3.scale.category10();
-
-    var arc=d3.svg.arc()
-            .outerRadius(outerRadius)
-            .innerRadius(innerRadius);
-
-    var svg=d3.select("#" + elementName)
-            .append("svg")
-            .attr({
-                width:w,
-                height:h,
-                class:'shadow'
-            }).append('g')
-            .attr({
-                transform:'translate('+w/2+','+h/2+')'
-            });
-    var path=svg.selectAll('path')
-            .data(pie(dataset))
-            .enter()
-            .append('path')
-            .attr({
-                d:arc,
-                fill:function(d,i){
-                    return color(d.data.name);
-                }
-            });
-
-    path.transition()
-            .duration(1000)
-            .attrTween('d', function(d) {
-                var interpolate = d3.interpolate({startAngle: 0, endAngle: 0}, d);
-                return function(t) {
-                    return arc(interpolate(t));
-                };
-            });
-
-
-    var restOfTheData=function(){
-        var text=svg.selectAll('text')
-                .data(pie(dataset))
-                .enter()
-                .append("text")
-                .transition()
-                .duration(200)
-                .attr("transform", function (d) {
-                    return "translate(" + arc.centroid(d) + ")";
-                })
-                .attr("dy", ".4em")
-                .attr("text-anchor", "middle")
-                .text(function(d){
-                    return d.data.percent+"%";
-                })
-                .style({
-                    fill:'#fff',
-                    'font-size':'10px'
-                });
-
-        var legendRectSize=20;
-        var legendSpacing=7;
-        var legendHeight=legendRectSize+legendSpacing;
-
-
-        var legend=svg.selectAll('.legend')
-                .data(color.domain())
-                .enter()
-                .append('g')
-                .attr({
-                    class:'legend',
-                    transform:function(d,i){
-                        //Just a calculation for x & y position
-                        return 'translate(-35,' + ((i*legendHeight)-65) + ')';
-                    }
-                });
-        legend.append('rect')
-                .attr({
-                    width:legendRectSize,
-                    height:legendRectSize,
-                    rx:20,
-                    ry:20
-                })
-                .style({
-                    fill:color,
-                    stroke:color
-                });
-
-        legend.append('text')
-                .attr({
-                    x:30,
-                    y:35
-                })
-                .text(function(d){
-                    return d;
-                }).style({
-                    fill:'#929DAF',
-                    'font-size':'12px'
-                });
-    };
-
-    setTimeout(restOfTheData,1000);
-  }
 </script>
 <style>
  .column {

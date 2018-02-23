@@ -15,6 +15,7 @@ stop_words.add("%")
 es_url = "https://search-tanl-nswk7nthqjskczmapaqzga3c2q.us-east-1.es.amazonaws.com/"
 search_type_index = "search/types/"
 qanda_index = "qanda/details/"
+user_index = "users/details/"
 
 def get_search_types(text):
     temp = TextBlob(text)
@@ -27,6 +28,25 @@ def get_search_types(text):
     else:
         results = []
     return results
+
+
+def get_users(userid, password):
+    url = es_url + user_index + "_search?size=10000&q=userid:(" + userid + ")" 
+    response = requests.get(url=url)
+    temp = 1
+    if str(response.status_code) == "200":
+        results = json.loads(response.text)["hits"]["hits"]
+        if len(results) >0:
+            if results[0]["_source"]["password"] == password:
+                temp=0
+            else:
+                temp = 2 
+        else:
+            temp = 1
+    else:
+        temp = 1
+    return temp
+
 
 def clean_search_text(search_text):
     temp = TextBlob(search_text)
@@ -87,129 +107,70 @@ def clean_search_text(search_text):
     
     return year, quarter, temp_ticker, yearquarter
 
-def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter):
-
-    input_json = {
-        "_source": {
-            "includes": [ "year", "quarter", "question", "sentiment","company" ,"answer"]
-        },
-        "size": 1000,
-        "query" : {
-            "constant_score" : {
-                "filter" : {
-                "bool" : {
-                    "must" : [
-                    { "bool" : {
-                            "should" : temp_keywords
-                        }
-                    },
-                    { "bool" : {
-                        "should" : yearquarter
-                    }
-                    }    
-                    ]
-                }
-                }
-            }
-        },
-        "aggs":{
-            "tickerAgg":{
-                "terms":{
-                    "field":"ticker.keyword"
-                }
-            },
-            "analystAgg":{
-                "terms":{
-                    "field":"analyst_name.keyword"
-                },
-                "aggs":{
-                    "sentimentAgg":{
-                        "terms":{
-                            "field":"sentiment.keyword"
-                        }
-                    }
-                }
-            },
-            "yearAgg":{
-                "terms":{
-                    "field":"year.keyword"
-                },
-                "aggs":{
-                    "quarterAgg":{
-                        "terms":{
-                            "field":"quarter.keyword"
-                        },
-                        "aggs":{
-                            "tickerAgg":{
-                                "terms":{
-                                    "field":"ticker.keyword"
-                                },
-                                "aggs":{
-                                    "sentimentAgg":{
-                                        "terms":{
-                                            "field":"sentiment.keyword"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter, search_context="chart"):
+    input_json = get_input_json(temp_keywords, yearquarter, search_context)
     url = es_url + qanda_index + "_search"
     headers = {"Content-Type" : "application/json"}
     response = requests.post(url=url, data=json.dumps(input_json), headers=headers)
-
     total_questions = 0
     total_positive_questions = 0
     total_neutral_questions = 0
     total_negative_questions = 0
     total_transcripts = 0
     total_analysts = 0
-
     analyst_container = []
     main_container = []
-     
-    if str(response.status_code) == "200":
-        questions = []
-        allquestions = []
-        questionandanswer=[]
-        questions_output = json.loads(response.text)["hits"]["hits"]
-        for question in questions_output:
-            print(question["_source"]["question"])
-            blob = TextBlob(question["_source"]["question"], classifier=cl)
-            print(blob.classify())
-            questions.append({
-                "year": question["_source"]["year"],
-                "quarter": question["_source"]["quarter"],
-                "company": question["_source"]["company"],
-                "question": question["_source"]["question"],
-                "sentiment": question["_source"]["sentiment"],
-                "category": blob.classify(),
-                "answer": question["_source"]["answer"],
-                "questionandanswer": "Q: " + question["_source"]["question"] + "<br/>   A: " + question["_source"]["answer"]
-            })
-            allquestions.append({"questions": question["_source"]["question"]})
-            questionandanswer.append({"questionandanswer" : "Q: " + question["_source"]["question"] + "A:" + question["_source"]["answer"]})
-        questionText = " ".join(q["questions"] for q in allquestions)
-        blob = TextBlob(questionText.lower())
-        #words = [stemmer.stem(word) for word in blob.words if word not in stop_words]
-        words = [word for word in blob.words if word not in stop_words]
-        frequency = {}
-        wordCloud = ([(word, len(list(filter(lambda k: word in k, words)))) for word in set(words)])
-        tickers = []
-        ticker_output = json.loads(response.text)["aggregations"]["tickerAgg"]["buckets"]    
-        for ticker in ticker_output:
-            tickers.append(ticker["key"])
+    questions = []
+    tickers = []
+    questions = []
+    allquestions = []
 
-        #if search_type["_source"]["name"] == "sentiment":
-        if "sentiment" == "sentiment":
+    if str(response.status_code) == "200":
+        if search_context == "table":
+            #questionandanswer=[]
+            questions_output = json.loads(response.text)["hits"]["hits"]
+            for question in questions_output:
+                blob = TextBlob(question["_source"]["question"], classifier=cl)
+                questions.append({
+                    "year": question["_source"]["year"],
+                    "quarter": question["_source"]["quarter"],
+                    "company": question["_source"]["company"],
+                    "question": question["_source"]["question"],
+                    "sentiment": question["_source"]["sentiment"],
+                    "category": blob.classify(),
+                    "answer": question["_source"]["answer"],
+                    "questionandanswer": "Q: " + question["_source"]["question"] + "<br/>   A: " + question["_source"]["answer"]
+                })
+                allquestions.append({"questions": question["_source"]["question"]})
+                #questionandanswer.append({"questionandanswer" : "Q: " + question["_source"]["question"] + "A:" + question["_source"]["answer"]})
+            result = {
+                "table_container": questions
+            }
+            return result
+
+        # TODO questionText = " ".join(q["questions"] for q in allquestions)
+        # TODO blob = TextBlob(questionText.lower())
+        # TODO words = [word for word in blob.words if word not in stop_words]
+        # TODO wordCloud = ([(word, len(list(filter(lambda k: word in k, words)))) for word in set(words)])
+
+        if search_context == "ticker":
+            ticker_output = json.loads(response.text)["aggregations"]["tickerAgg"]["buckets"]
+            for ticker in ticker_output:
+                tickers.append(ticker["key"])
+
+            result = {
+                "search_results": {
+                    "tickers": tickers,
+                    "years": inp_year,
+                    "quarters": inp_quarter,
+                    "report_types": []
+                }
+            }
+            return result
+
+        if search_context == "analyst":
             analyst_output = json.loads(response.text)["aggregations"]["analystAgg"]["buckets"]
-            
             for analyst in analyst_output:
-                total_analysts = total_analysts + 1
                 positive_cnt = list(filter(lambda d: d["key"] == "positive", analyst["sentimentAgg"]["buckets"]))
                 if len(positive_cnt) > 0:
                     positive_cnt = positive_cnt[0]["doc_count"]
@@ -229,10 +190,6 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter)
                     neutral_cnt = 0
                 
                 total_cnt = positive_cnt + negative_cnt + neutral_cnt
-                total_questions = total_questions + total_cnt
-                total_positive_questions = total_positive_questions + positive_cnt
-                total_negative_questions = total_negative_questions + negative_cnt
-                total_neutral_questions = total_neutral_questions + neutral_cnt
                 if total_cnt > 0:
                     positive_pct = (positive_cnt/total_cnt*100)
                     negative_pct = (negative_cnt/total_cnt*100)
@@ -256,7 +213,12 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter)
                     "neutral_pct": round(neutral_pct,0),
                     "pattern": winner
                 })
+            result = {
+                "analyst_container": analyst_container
+            }
+            return result
 
+        if search_context == "chart":
             main_output = json.loads(response.text)["aggregations"]["yearAgg"]["buckets"]
             main_container = {}
             temp_container = []
@@ -378,38 +340,107 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter)
             result_dict["x_key"] = 'group1'
             result_dict["chartType"] = default_chart
             result_dict["colors"] = colors
-            result_dict["data"] = temp_container
+            result_dict["data"] = temp_container    
             result_dict["questions"] = allquestions
 
             main_container = result_dict
-        if total_transcripts == 0:
-            average_questions = 0
-            average_analysts = 0
-        else:
-            average_questions = round(total_questions/total_transcripts,0)
-            average_analysts = round(total_analysts/total_transcripts,0)
-        result = {
-            "analyst_container": analyst_container,
-            "main_container": main_container,
-            "table_container": questions,
-            "search_results": {
-                "tickers": tickers,
-                "years": inp_year,
-                "quarters": inp_quarter,
-                "report_types": [] 
-            },
-            "metric_container": {
-                "total_questions": total_questions,
-                "total_positive_questions": total_positive_questions,
-                "total_negative_questions": total_negative_questions,
-                "total_neutral_questions": total_neutral_questions,
-                "average_questions": average_questions,
-                "total_analysts": total_analysts,
-                "average_analysts": average_analysts
-            },
-            "wordCloud":wordCloud
-        }
-        return result
+
+            result = {
+                "main_container": main_container
+            }
+            return result
     else:
         print("Error:" + str(response.text))
         return []
+
+def get_input_json(temp_keywords, yearquarter, search_context):
+    query_input = {
+                "constant_score": {
+                    "filter": {
+                        "bool": {
+                            "must": [
+                                {"bool": {
+                                    "should": temp_keywords
+                                }
+                                },
+                                {"bool": {
+                                    "should": yearquarter
+                                }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+
+
+    if search_context == "table":
+        input_json = {
+            "_source": {
+                "includes": ["year", "quarter", "question", "sentiment", "company", "answer"]
+            },
+            "size": 1000,
+            "query": query_input
+        }
+    elif search_context == "ticker":
+        input_json = {
+            "query": query_input,
+            "aggs": {
+                "tickerAgg": {
+                    "terms": {
+                        "field": "ticker.keyword"
+                    }
+                }
+            }
+        }
+    elif search_context == "analyst":
+        input_json = {
+            "query": query_input,
+            "aggs": {
+                "analystAgg": {
+                    "terms": {
+                        "field": "analyst_name.keyword"
+                    },
+                    "aggs": {
+                        "sentimentAgg": {
+                            "terms": {
+                                "field": "sentiment.keyword"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    elif search_context == "chart":
+        input_json = {
+            "query": query_input,
+            "aggs": {
+                "yearAgg": {
+                    "terms": {
+                        "field": "year.keyword"
+                    },
+                    "aggs": {
+                        "quarterAgg": {
+                            "terms": {
+                                "field": "quarter.keyword"
+                            },
+                            "aggs": {
+                                "tickerAgg": {
+                                    "terms": {
+                                        "field": "ticker.keyword"
+                                    },
+                                    "aggs": {
+                                        "sentimentAgg": {
+                                            "terms": {
+                                                "field": "sentiment.keyword"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    return input_json
