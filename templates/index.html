@@ -207,14 +207,28 @@
               </div>
       </div>
       <div class="windowContRed">
-        <div class="row" style="padding:10px;width:100%;text-align:center">
-          <span style="font-size: 12pt; font-weight: bold;">Analysts</span>
-        </div>
-        <div class="row" style="padding-left:25px;padding-right:25px;width:100%">
-            <div>
-              <p id="analyst_container" style="word-wrap: break-word;"></p>
+        <div class=""  id="analystDiv">
+            <div class="row" style="padding:10px;width:100%;text-align:center" >
+              <span style="font-size: 12pt; font-weight: bold;">Analysts</span>
+              <span onclick="hideAnalyst()" class="	glyphicon glyphicon-link" style="float:right;color:blue;font-size:12pt"></span>
             </div>
-          </div>
+            <div class="row" style="padding-left:25px;padding-right:25px;width:100%">
+                <div>
+                    <p id="analyst_container" style="word-wrap: break-word;"></p>
+                </div>
+            </div>
+        </div>
+        <div class="hide"  id="executiveDiv">
+            <div class="row" style="padding:10px;width:100%;text-align:center" >
+              <span style="font-size: 12pt; font-weight: bold;">Executives</span>
+                <span onclick="hideExecutive()" class="	glyphicon glyphicon-link" style="float:right;color:blue;font-size:12pt"></span>
+            </div>
+            <div class="row" style="padding-left:25px;padding-right:25px;width:100%">
+                <div>
+                    <p id="executive_container" style="word-wrap: break-word;"></p>
+                </div>
+              </div>
+        </div>
       </div>
 
       <div class="windowContYellow">
@@ -248,6 +262,7 @@
 
 <input type="hidden" id="searchKeyTicker"/>
 <input type="hidden" id="searchKeyAnalyst"/>
+<input type="hidden" id="searchKeyExecutive"/>
 <input type="hidden" id="searchKeyTable"/>
 <input type="hidden" id="searchKeyChart"/>
 <input type="hidden" id="searchKeyMetric"/>
@@ -270,6 +285,7 @@
 <script src="/assets/bower_components/jquery-knob/dist/jquery.knob.min.js"></script>
 <!-- daterangepicker -->
 <script src="/assets/bower_components/moment/min/moment.min.js"></script>
+<script src="/assets/js/Chart.min.js"></script>
 <script src="/assets/bower_components/bootstrap-daterangepicker/daterangepicker.js"></script>
 <!-- datepicker -->
 <script src="/assets/bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
@@ -290,7 +306,15 @@
 <script src="/assets/dist/css/jqcloud.css"></script>
 <script src="/assets/bower_components/jquery/src/d3.min.js"></script>
 <script type="text/javascript">
+    function hideAnalyst(){
+        $("#analystDiv").addClass("hide")
+        $("#executiveDiv").removeClass("hide")
+    }
 
+    function hideExecutive(){
+        $("#analystDiv").removeClass("hide")
+        $("#executiveDiv").addClass("hide")
+    }
 
   function searchChange(ctl){
     //search_text = $(ctl).val();
@@ -304,12 +328,15 @@
 
   }
   setInterval(search_api_analyst,500);
+  setInterval(search_api_executive,500);
 
   setInterval(search_api_ticker,500);
 
   setInterval(search_api_table,500);
 
   setInterval(search_api_chart,500);
+
+  setInterval(search_api_metric,500);
 
 
   function search_api_ticker(){
@@ -354,6 +381,30 @@
             dataType: 'json',
             success: function(data) {
                 build_analyst_results(data);
+            },
+            type: 'GET'
+          });
+      }
+  }
+
+  function search_api_executive(){
+      search_context = "executive"
+      search_text = $('#searchBox').val();
+      if (search_text === ""){
+        search_text = "a"
+      }
+      if (search_text != $("#searchKeyExecutive").val()){
+          $('#searchKeyExecutive').val(search_text)
+          $.ajax({
+            url: '/search/' + search_context + '/' + search_text,
+            error: function() {
+                //$('#searchNotification').html('<p>An error has occurred</p>');
+
+            },
+            async: true,
+            dataType: 'json',
+            success: function(data) {
+                build_executive_results(data);
             },
             type: 'GET'
           });
@@ -482,6 +533,24 @@ function build_analyst_results(rows){
     $("#analyst_container").html(temp_html);
 }
 
+function build_executive_results(rows){
+    temp_html = ""
+    $.each(rows.executive_container, function(index,row){
+    /*Key is the collection of the different search patterns and the value is the id*/
+      temp_html = temp_html + "<div class='row' style='margin-top:15px'>" +
+        "<div class='col-sm-8' style='padding-top:0px'>" + row.name + "</div>" +
+        "<div class='col-sm-4' style='padding-top:5px'>" +
+        '   <div class="row"><div class="progress-bar progressbar-green" role="progressbar" aria-valuenow="' + row.positive_pct + '"' +
+        '       aria-valuemin="0" aria-valuemax="100" style="background-color:green;height:4px;width:' + row.positive_pct + '%"></div></div>' +
+        '   <div class="row"><div class="progress-bar progressbar-red" role="progressbar" aria-valuenow="' + row.negative_pct + '"' +
+        '       aria-valuemin="0" aria-valuemax="100" style="background-color:red;height:4px;width:' + row.negative_pct + '%"></div></div>' +
+        '   <div class="row"><div class="progress-bar progressbar-blue" role="progressbar" aria-valuenow="' + row.neutral_pct + '"' +
+        '       aria-valuemin="0" aria-valuemax="100" style="height:4px;width:' + row.neutral_pct + '%"></div></div>' +
+        "</div></div>"
+   });
+    $("#executive_container").html(temp_html);
+}
+
 function build_metric_results(rows){
     temp_html = ""
     temp_html = temp_html + "<div class='row' style='margin-top:7px'>" + 
@@ -553,7 +622,6 @@ function build_table_grid_results(rows){
 
 function build_chart_results(rows){
     temp_html = ""
-    console.log(rows.main_container.data)
           group = rows.main_container.data
           temp1_html = '<div id="lineContainer" class="chartCont" style="display:inline-block;width:100%;" >' +
                                   '<div id="chart_line" class="chart-container1">' +

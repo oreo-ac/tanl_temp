@@ -109,6 +109,7 @@ def clean_search_text(search_text):
 
 def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter, search_context="chart"):
     input_json = get_input_json(temp_keywords, yearquarter, search_context)
+    print(input_json)
     url = es_url + qanda_index + "_search"
     headers = {"Content-Type" : "application/json"}
     response = requests.post(url=url, data=json.dumps(input_json), headers=headers)
@@ -119,6 +120,7 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
     total_transcripts = 0
     total_analysts = 0
     analyst_container = []
+    executive_container = []
     main_container = []
     questions = []
     tickers = []
@@ -160,12 +162,60 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
 
             result = {
                 "search_results": {
-                    "tickers": tickers,
-                    "years": inp_year,
-                    "quarters": inp_quarter,
+                    "tickers": list(set(tickers)),
+                    "years": list(set(inp_year)),
+                    "quarters": list(set(inp_quarter)),
                     "report_types": []
                 }
             }
+            return result
+
+        if search_context == "metric":
+            output = json.loads(response.text)["aggregations"]
+            temp_pos = list(filter(lambda d: d["key"]=="positive",output["sentimentCount"]["buckets"]))
+            if len(temp_pos) > 0:
+                temp_pos = temp_pos[0]["doc_count"]
+            else:
+                temp_pos = 0
+            temp_neg = list(filter(lambda d: d["key"] == "negative", output["sentimentCount"]["buckets"]))
+            if len(temp_neg) > 0:
+                temp_neg = temp_neg[0]["doc_count"]
+            else:
+                temp_neg = 0
+            temp_neu = list(filter(lambda d: d["key"] == "neutral", output["sentimentCount"]["buckets"]))
+            if len(temp_neu) > 0:
+                temp_neu = temp_neu[0]["doc_count"]
+            else:
+                temp_neu = 0
+            total_positive_questions = temp_pos
+            total_negative_questions = temp_neg
+            total_neutral_questions = temp_neu
+            total_questions = temp_pos + temp_neg + temp_neu
+            total_analysts = output["analystCount"]["value"]
+            average_analysts = 0
+            average_questions = 0
+            temp_count = 0
+            for year in output["transcriptsCount"]["buckets"]:
+                for quarter in year["quarterAgg"]["buckets"]:
+                    temp_count = temp_count + quarter["tickerAgg"]["value"]
+            transcript_count = temp_count
+            print(transcript_count)
+            if transcript_count > 0:
+                average_analysts = round(total_analysts/transcript_count,0)
+                average_questions = round(total_questions / transcript_count, 0)
+
+            result = {
+                "metric_container": {
+                    "total_questions": total_questions,
+                    "total_positive_questions": total_positive_questions,
+                    "total_negative_questions": total_negative_questions,
+                    "total_neutral_questions": total_neutral_questions,
+                    "average_questions": average_questions,
+                    "total_analysts": total_analysts,
+                    "average_analysts": average_analysts
+                }
+            }
+            print(result)
             return result
 
         if search_context == "analyst":
@@ -216,6 +266,59 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
             result = {
                 "analyst_container": analyst_container
             }
+            return result
+
+        if search_context == "executive":
+            executive_output = json.loads(response.text)["aggregations"]["executiveAgg"]["buckets"]
+            print(executive_output)
+            for executive in executive_output:
+                print(executive["key"])
+                positive_cnt = list(filter(lambda d: d["key"] == "positive", executive["sentimentAgg"]["buckets"]))
+                if len(positive_cnt) > 0:
+                    positive_cnt = positive_cnt[0]["doc_count"]
+                else:
+                    positive_cnt = 0
+
+                negative_cnt = list(filter(lambda d: d["key"] == "negative", executive["sentimentAgg"]["buckets"]))
+                if len(negative_cnt) > 0:
+                    negative_cnt = negative_cnt[0]["doc_count"]
+                else:
+                    negative_cnt = 0
+
+                neutral_cnt = list(filter(lambda d: d["key"] == "neutral", executive["sentimentAgg"]["buckets"]))
+                if len(neutral_cnt) > 0:
+                    neutral_cnt = neutral_cnt[0]["doc_count"]
+                else:
+                    neutral_cnt = 0
+
+                total_cnt = positive_cnt + negative_cnt + neutral_cnt
+                if total_cnt > 0:
+                    positive_pct = (positive_cnt / total_cnt * 100)
+                    negative_pct = (negative_cnt / total_cnt * 100)
+                    neutral_pct = (neutral_cnt / total_cnt * 100)
+                else:
+                    positive_pct = 0
+                    negative_pct = 0
+                    neutral_pct = 0
+                winner = ""
+                if positive_pct > negative_pct and positive_pct > neutral_pct:
+                    winner = "positive"
+                elif negative_pct > positive_pct and negative_pct > neutral_pct:
+                    winner = "negative"
+                else:
+                    winner = "neutral"
+
+                executive_container.append({
+                    "name": executive["key"],
+                    "positive_pct": round(positive_pct, 0),
+                    "negative_pct": round(negative_pct, 0),
+                    "neutral_pct": round(neutral_pct, 0),
+                    "pattern": winner
+                })
+            result = {
+                "executive_container": executive_container
+            }
+            print(result)
             return result
 
         if search_context == "chart":
@@ -385,6 +488,7 @@ def get_input_json(temp_keywords, yearquarter, search_context):
     elif search_context == "ticker":
         input_json = {
             "query": query_input,
+            "size": 0,
             "aggs": {
                 "tickerAgg": {
                     "terms": {
@@ -396,6 +500,7 @@ def get_input_json(temp_keywords, yearquarter, search_context):
     elif search_context == "analyst":
         input_json = {
             "query": query_input,
+            "size": 0,
             "aggs": {
                 "analystAgg": {
                     "terms": {
@@ -411,9 +516,29 @@ def get_input_json(temp_keywords, yearquarter, search_context):
                 }
             }
         }
+    elif search_context == "executive":
+        input_json = {
+            "query": query_input,
+            "size": 0,
+            "aggs": {
+                "executiveAgg": {
+                    "terms": {
+                        "field": "executive_name.keyword"
+                    },
+                    "aggs": {
+                        "sentimentAgg": {
+                            "terms": {
+                                "field": "answerSentiment.keyword"
+                            }
+                        }
+                    }
+                }
+            }
+        }
     elif search_context == "chart":
         input_json = {
             "query": query_input,
+            "size": 0,
             "aggs": {
                 "yearAgg": {
                     "terms": {
@@ -435,6 +560,42 @@ def get_input_json(temp_keywords, yearquarter, search_context):
                                                 "field": "sentiment.keyword"
                                             }
                                         }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    elif search_context == "metric":
+        input_json = {
+	        "query": query_input,
+            "size": 0,
+	        "aggs": {
+			    "analystCount": {
+                    "cardinality": {
+                        "field": "analyst_name.keyword"
+                    }
+                },
+                "sentimentCount": {
+                    "terms": {
+                        "field": "sentiment.keyword"
+                    }
+                },
+                "transcriptsCount": {
+                    "terms": {
+                        "field": "year.keyword"
+                    },
+                    "aggs": {
+                        "quarterAgg": {
+                            "terms": {
+                                "field": "quarter.keyword"
+                            },
+                            "aggs": {
+                                "tickerAgg": {
+                                    "cardinality": {
+                                        "field": "ticker.keyword"
                                     }
                                 }
                             }
