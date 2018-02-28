@@ -8,14 +8,16 @@ from multiprocessing import Pool
 import boto3
 from selenium.webdriver.common.action_chains import ActionChains
 import scrapy
+from html_parse_ESLoader import ESLoader
 
-def parse_main_earnings_page(ticker, noYears):
-    base_url = "https://seekingalpha.com/symbol/{}/earnings/transcripts"
-    url = base_url.format(ticker)
+def parse_main_earnings_page():
+    base_url = "https://seekingalpha.com/earnings/earnings-call-transcripts"
+    url=base_url
     href_links = []
     exit_code = 0
     driver = webdriver.Chrome()
     driver.get(url)
+    esLoader = ESLoader()
     iCnt=1
     for iCnt in range(100):
         driver.execute_script("window.scrollTo(0, "+ str((iCnt+1)*100) +");")
@@ -29,17 +31,29 @@ def parse_main_earnings_page(ticker, noYears):
                 #transcriptLinks.append(linkURL.lower())
                 transcriptLinks.append(anchor.get_attribute("href"))
                 #print(anchor.get_attribute("href"))
-                if(len(transcriptLinks)>12):
-                    break
+                #if(len(transcriptLinks)>0):
+                #    break
     driver.quit()
     for link in transcriptLinks:
-        print(link +'?part=single')
         driver = webdriver.Chrome()
         driver.get('https://seekingalpha.com/earnings/earnings-call-transcripts')
         driver.get(link+'?part=single')       
+        #driver.get('https://seekingalpha.com/article/4151418-bank-montreal-bmo-q1-2018-results-earnings-call-transcript')
         response = driver.find_element_by_id("a-body").get_attribute("outerHTML")
         data = response.encode('utf-8')
-        print(link)
+        #data = response.encode('ASCII')
+        print(link +'?part=single')
+        linkParts = link.split("/")
+        fileName= linkParts[len(linkParts)-1]
+        filetoWrite="success.txt"
+        try:
+            esLoader.maincall(data, fileName)
+        except:
+            filetoWrite="failure.txt"
+        f= open(filetoWrite,"a+")
+        f.write(link+ "\r\n")
+        f.close()
+        #print(data)
         driver.quit()
     #return transcriptLinks
 def parse(response):
@@ -55,4 +69,4 @@ def get_content_from_earnings(link):
 
 if __name__ == '__main__':
     ticker = "JPM"
-    parse_main_earnings_page(ticker,4)
+    parse_main_earnings_page()
