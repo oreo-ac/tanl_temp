@@ -107,8 +107,8 @@ def clean_search_text(search_text):
     
     return year, quarter, temp_ticker, yearquarter
 
-def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter, search_context="chart"):
-    input_json = get_input_json(temp_keywords, yearquarter, search_context)
+def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter, search_context="chart", query_type="ticker"):
+    input_json = get_input_json(temp_keywords, yearquarter, search_context, query_type)
     url = es_url + qanda_index + "_search"
     headers = {"Content-Type" : "application/json"}
     response = requests.post(url=url, data=json.dumps(input_json), headers=headers)
@@ -326,6 +326,8 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
             ticker_output = json.loads(response.text)["aggregations"]["tickerAgg"]["buckets"]
             for ticker in ticker_output:
                 tickers.append(ticker["key"])
+            tickers = tickers[:3]
+            print(tickers)
             main_output = json.loads(response.text)["aggregations"]["yearAgg"]["buckets"]
             main_container = {}
             temp_container = []
@@ -335,73 +337,74 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
                 temp_dict = {}
                 for quarter in year["quarterAgg"]["buckets"]:
                     for ticker in quarter["tickerAgg"]["buckets"]:
-                        total_transcripts = total_transcripts + 1
-                        positive_cnt = list(filter(lambda d: d["key"] == "positive", ticker["sentimentAgg"]["buckets"]))
-                        if len(positive_cnt) > 0:
-                            positive_cnt = positive_cnt[0]["doc_count"]
-                        else:
-                            positive_cnt = 0
-                        
-                        negative_cnt = list(filter(lambda d: d["key"] == "negative", ticker["sentimentAgg"]["buckets"]))
-                        if len(negative_cnt) > 0:
-                            negative_cnt = negative_cnt[0]["doc_count"]
-                        else:
-                            negative_cnt = 0
+                        if ticker["key"] in tickers:
+                            total_transcripts = total_transcripts + 1
+                            positive_cnt = list(filter(lambda d: d["key"] == "positive", ticker["sentimentAgg"]["buckets"]))
+                            if len(positive_cnt) > 0:
+                                positive_cnt = positive_cnt[0]["doc_count"]
+                            else:
+                                positive_cnt = 0
 
-                        neutral_cnt = list(filter(lambda d: d["key"] == "neutral", ticker["sentimentAgg"]["buckets"]))
-                        if len(neutral_cnt) > 0:
-                            neutral_cnt = neutral_cnt[0]["doc_count"]
-                        else:
-                            neutral_cnt = 0
-                        total_cnt = positive_cnt + negative_cnt + neutral_cnt
-                        if total_cnt > 0:
-                            positive_pct = (positive_cnt/total_cnt*100)
-                            negative_pct = (negative_cnt/total_cnt*100)
-                            neutral_pct = (neutral_cnt/total_cnt*100)
-                        else:
-                            positive_pct = 0
-                            negative_pct = 0
-                            neutral_pct = 0
-                        winner = ""
+                            negative_cnt = list(filter(lambda d: d["key"] == "negative", ticker["sentimentAgg"]["buckets"]))
+                            if len(negative_cnt) > 0:
+                                negative_cnt = negative_cnt[0]["doc_count"]
+                            else:
+                                negative_cnt = 0
 
-                        if positive_pct > negative_pct and positive_pct > neutral_pct:
-                            winner = "positive"
-                        elif negative_pct > positive_pct and negative_pct > neutral_pct:
-                            winner = "negative"
-                        else:
-                            winner = "neutral"
+                            neutral_cnt = list(filter(lambda d: d["key"] == "neutral", ticker["sentimentAgg"]["buckets"]))
+                            if len(neutral_cnt) > 0:
+                                neutral_cnt = neutral_cnt[0]["doc_count"]
+                            else:
+                                neutral_cnt = 0
+                            total_cnt = positive_cnt + negative_cnt + neutral_cnt
+                            if total_cnt > 0:
+                                positive_pct = (positive_cnt/total_cnt*100)
+                                negative_pct = (negative_cnt/total_cnt*100)
+                                neutral_pct = (neutral_cnt/total_cnt*100)
+                            else:
+                                positive_pct = 0
+                                negative_pct = 0
+                                neutral_pct = 0
+                            winner = ""
+
+                            if positive_pct > negative_pct and positive_pct > neutral_pct:
+                                winner = "positive"
+                            elif negative_pct > positive_pct and negative_pct > neutral_pct:
+                                winner = "negative"
+                            else:
+                                winner = "neutral"
 
 
-                        temp_dict = {
-                            "group": ticker["key"] + " " + str(year["key"]) + " " + str(quarter["key"]),
-                            "sort1": str(year["key"]) + " " + str(quarter["key"]) + ticker["key"],
-                            "group1": str(year["key"]) + " " + str(quarter["key"]),
-                            "ticker": ticker["key"],
-                            ticker["key"] + "-pv_pct": round(positive_pct, 0),
-                            ticker["key"] + "-nv_pct": round(negative_pct, 0),
-                            ticker["key"] + "-nt_pct": round(neutral_pct,0),
-                            "result": [
-                                {
-                                    "label": "positive",
-                                    "value": round(positive_pct, 0),
-                                    "color": "#00a65a"
-                                },
-                                {
-                                    "label": "negative",
-                                    "value": round(negative_pct, 0),
-                                    "color": "#f56954"
-                                },
-                                {
-                                    "label": "neutral",
-                                    "value": round(neutral_pct,0),
-                                    "color": "#3c8dbc"
-                                }
-                            ],
-                        }
-                        temp_dict["positive"] = round(positive_pct, 0)
-                        temp_dict["negative"] = round(negative_pct, 0)
-                        temp_dict["neutral"] = round(neutral_pct, 0)
-                        temp_container.append(temp_dict)
+                            temp_dict = {
+                                "group": ticker["key"] + " " + str(year["key"]) + " " + str(quarter["key"]),
+                                "sort1": str(year["key"]) + " " + str(quarter["key"]) + ticker["key"],
+                                "group1": str(year["key"]) + " " + str(quarter["key"]),
+                                "ticker": ticker["key"],
+                                ticker["key"] + "-pv_pct": round(positive_pct, 0),
+                                ticker["key"] + "-nv_pct": round(negative_pct, 0),
+                                ticker["key"] + "-nt_pct": round(neutral_pct,0),
+                                "result": [
+                                    {
+                                        "label": "positive",
+                                        "value": round(positive_pct, 0),
+                                        "color": "#00a65a"
+                                    },
+                                    {
+                                        "label": "negative",
+                                        "value": round(negative_pct, 0),
+                                        "color": "#f56954"
+                                    },
+                                    {
+                                        "label": "neutral",
+                                        "value": round(neutral_pct,0),
+                                        "color": "#3c8dbc"
+                                    }
+                                ],
+                            }
+                            temp_dict["positive"] = round(positive_pct, 0)
+                            temp_dict["negative"] = round(negative_pct, 0)
+                            temp_dict["neutral"] = round(neutral_pct, 0)
+                            temp_container.append(temp_dict)
 
 
             if len(search_type) > 0:
@@ -416,8 +419,6 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
                 samples = [("positive","#00a65a"), ("negative", "#f56954"), ("neutral","#3c8dbc")]
                 for sample in samples:
                     for ticker in tickers:
-                        print("Debugger")
-                        print(ticker)
                         #y_keys = y_keys + [ticker + "-positive", ticker + "-negative", ticker + "-neutral"]
                         #y_labels =y_labels +  [ticker + "-positive", ticker + "-negative", ticker + "-neutral"]
                         #colors = colors + ["#00a65a", "#f56954", "#3c8dbc"]
@@ -464,7 +465,6 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
             result_dict["questions"] = allquestions
 
             main_container = result_dict
-            print(temp_container)
             result = {
                 "main_container": main_container
             }
@@ -473,7 +473,7 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
         print("Error:" + str(response.text))
         return []
 
-def get_input_json(temp_keywords, yearquarter, search_context):
+def get_input_json(temp_keywords, yearquarter, search_context, querytype):
     query_input = {
                 "constant_score": {
                     "filter": {
@@ -567,7 +567,7 @@ def get_input_json(temp_keywords, yearquarter, search_context):
             "aggs": {
                 "tickerAgg": {
                     "terms": {
-                        "field": "ticker.keyword"
+                        "field": querytype + ".keyword"
                     }
                 },
                 "yearAgg": {
@@ -582,7 +582,7 @@ def get_input_json(temp_keywords, yearquarter, search_context):
                             "aggs": {
                                 "tickerAgg": {
                                     "terms": {
-                                        "field": "ticker.keyword"
+                                        "field": querytype + ".keyword"
                                     },
                                     "aggs": {
                                         "sentimentAgg": {

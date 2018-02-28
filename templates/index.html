@@ -139,24 +139,35 @@
     <div id="chartMaster" class="row" style="padding-left:7px;padding-right:7px">
         <div class="col-sm-12">
             <h5 style="text-align:center"><span style="font-size:12pt;font-family:Impact;">Charts</span></h5>
+            <div class="row" style="text-align:center;margin-bottom:5px">
+                <div class="col-sm-12" style="display:inline-block">
+                    <span class="box-shadow3 box-shadow4" onclick="setQueryType('ticker', this);" >by Ticker</span>
+                    <span class="box-shadow3" onclick="setQueryType('analyst_name', this);">by Analyst</span>
+                    <span class="box-shadow3" onclick="setQueryType('executive_name', this);">by Executive</span>
+                    <span class="box-shadow3" onclick="setQueryType('stocksentiment', this);">Stock Vs Sentiment(WIP)</span>
+                </div>
+            </div>
 
             <div class="windowContSeal" style="">
                 <div class="col-sm-12">
-                    <span id="pieChart" onclick="selectChart('pie', this);" class="selectedChart chartoption fa fa-pie-chart"
-                        style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
-                    <span id="areaChart" onclick="selectChart('area', this);" class="chartoption fa fa-area-chart"
+                    <span style="width:70%">
+                        <span id="pieChart" onclick="selectChart('pie', this);" class="selectedChart chartoption fa fa-pie-chart"
                             style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
-                    <span id="barChart" onclick="selectChart('bar', this);" class="chartoption fa fa-bar-chart"
-                            style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
-                    <span id="stackedChart" onclick="selectChart('stacked', this);" class="chartoption fa fa-bar-chart-o"
-                            style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
-                    <span id="lineChart" onclick="selectChart('line', this);" class="chartoption fa fa-line-chart"
-                            style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
-                    <span id="wordcloud" onclick="selectChart('wordcloud', this);" class="chartoption fa fa-cloud"
-                            style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
-                    <span id="" class=""
-                            style="border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:black">|</span>
-                    <span style="float:right;margin-top:6px">
+                        <span id="areaChart" onclick="selectChart('area', this);" class="chartoption fa fa-area-chart"
+                                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
+                        <span id="barChart" onclick="selectChart('bar', this);" class="chartoption fa fa-bar-chart"
+                                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
+                        <span id="stackedChart" onclick="selectChart('stacked', this);" class="chartoption fa fa-bar-chart-o"
+                                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
+                        <span id="lineChart" onclick="selectChart('line', this);" class="chartoption fa fa-line-chart"
+                                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
+                        <span id="wordcloud" onclick="selectChart('wordcloud', this);" class="chartoption fa fa-cloud"
+                                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
+                        <span id="" class=""
+                                style="border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:black">|</span>
+                    </span>
+
+                    <span style="float:right;margin-top:8px;margin-right:4px">
                         <a href="#" data-action="fullscreen" class="orange2" onclick="fullscreen('chartMaster')">
 															<i class="ace-icon fa fa-expand"></i>
 														</a>
@@ -276,6 +287,7 @@
 <!-- ./wrapper -->
 <input type="hidden" id="selected_option"/>
 <input type="hidden" id="chartType"/>
+<input type="hidden" id="querytype" value="ticker"/>
 
 <input type="hidden" id="searchKeyTicker"/>
 <input type="hidden" id="searchKeyAnalyst"/>
@@ -324,7 +336,26 @@
 <script src="/assets/dist/css/jqcloud.css"></script>
 <script src="/assets/bower_components/jquery/src/d3.min.js"></script>
 <script type="text/javascript">
+    function setQueryType(type, ctl){
+        $('#querytype').val(type)
 
+        temp = $("#searchBox").val()
+        temp = temp.replace(" sentiment by ticker","")
+        temp = temp.replace(" sentiment by analyst","")
+        temp = temp.replace(" sentiment by executive","")
+        temp = temp.replace(" stock vs sentiment","")
+        if (type === "stocksentiment"){
+            console.log("pass")
+            $("#searchBox").val(temp + " stock vs sentiment")
+        }else{
+            $("#searchBox").val(temp + " sentiment by " + type.toLowerCase().replace("_name",""))
+            search_api_chart()
+        }
+        $(".box-shadow3").each(function(){
+            $(this).removeClass("box-shadow4")
+        });
+        $(ctl).addClass("box-shadow4")
+    }
     function fullscreen(elementId){
         if ( $("#" + elementId).hasClass("fullscreen")){
             $("#" + elementId).removeClass("fullscreen");
@@ -403,7 +434,7 @@
       if (search_text != $("#searchKeyWordcloud").val()){
           $('#searchKeyWordcloud').val(search_text)
           $.ajax({
-            url: '/search/' + search_context + '/' + search_text,
+            url: '/search/' + search_context + '/' + search_text + '/na',
             error: function() {
                 //$('#searchNotification').html('<p>An error has occurred</p>');
 
@@ -470,13 +501,14 @@
   function search_api_chart(){
       search_context = "chart"
       search_text = $('#searchBox').val();
+      querytype = $('#querytype').val();
       if (search_text === ""){
         search_text = "a"
       }
       if (search_text != $("#searchKeyChart").val()){
           $('#searchKeyChart').val(search_text)
           $.ajax({
-            url: '/search/' + search_context + '/' + search_text,
+            url: '/search/' + search_context + '/' + search_text + '/' + querytype,
             error: function() {
                 //$('#searchNotification').html('<p>An error has occurred</p>');
 
@@ -1015,6 +1047,38 @@ border-radius:15px;
     padding-right:5px;
     font-size:9pt;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.box-shadow3{
+    border-radius: 5px;
+    margin-left:10px;
+    margin-top:5px;
+    font-family:Arial;
+    padding-left:5px;
+    font-style:bold;
+    padding-right:5px;
+    padding-top:2px;
+    padding-bottom:2px;
+    font-size:9pt;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    background-color:#EAFAF1;
+    cursor:pointer;
+}
+.box-shadow4{
+    padding-top:2px;
+    padding-bottom:2px;
+    border-radius: 5px;
+    margin-left:10px;
+    margin-top:5px;
+    font-family:Arial;
+    padding-left:5px;
+    font-style:bold;
+    padding-right:5px;
+    font-size:9pt;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    background-color:green;
+    color:white;
+    cursor:pointer;
 }
 </style>
 </body>

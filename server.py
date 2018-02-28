@@ -47,8 +47,8 @@ def hello():
     else:
         return render_template("index.html", **locals())
 
-@app.route("/search/<string:context>/<string:code>/", methods=['GET'])
-def search_results(context, code):
+@app.route("/search/<string:context>/<string:code>/<string:querytype>", methods=['GET'])
+def search_results(context, code, querytype):
     year, quarter, temp, yearquarter = helpers.clean_search_text(code)
     search_response = helpers.get_search_types(code)
     search_response = search_response["hits"]
@@ -59,7 +59,7 @@ def search_results(context, code):
         }
 
     else:
-        response = helpers.get_data(cl, search_response, year, quarter, temp, yearquarter, context)
+        response = helpers.get_data(cl, search_response, year, quarter, temp, yearquarter, context, querytype)
         
     return jsonify(response)
 
