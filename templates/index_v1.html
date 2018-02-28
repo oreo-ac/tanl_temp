@@ -129,125 +129,107 @@
         </div>
       </div>
       <div class="col-sm-2" style="border-radius:10px; margin-top:7px;">
-
+        <span id="pieChart" onclick="selectChart('pie', this);" class="selectedChart chartoption fa fa-pie-chart" 
+                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
+        <span id="areaChart" onclick="selectChart('area', this);" class="chartoption fa fa-area-chart" 
+                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
+        <span id="barChart" onclick="selectChart('bar', this);" class="chartoption fa fa-bar-chart" 
+                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
+        <span id="stackedChart" onclick="selectChart('stacked', this);" class="chartoption fa fa-bar-chart-o" 
+                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
+        <span id="lineChart" onclick="selectChart('line', this);" class="chartoption fa fa-line-chart" 
+                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
+        <span id="wordcloud" onclick="selectWordCloud('wordcloud', this);" class="chartoption fa fa-cloud",
+                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
       </div>
     </div>
     <br/>
     <div class="row">
-    </div>
-
-    <div id="chartMaster" class="row" style="padding-left:7px;padding-right:7px">
-        <div class="col-sm-12">
-            <h5 style="text-align:center"><span style="font-size:12pt;font-family:Impact;">Charts</span></h5>
-
-            <div class="windowContSeal" style="">
-                <div class="col-sm-12">
-                    <span id="pieChart" onclick="selectChart('pie', this);" class="selectedChart chartoption fa fa-pie-chart"
-                        style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
-                    <span id="areaChart" onclick="selectChart('area', this);" class="chartoption fa fa-area-chart"
-                            style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
-                    <span id="barChart" onclick="selectChart('bar', this);" class="chartoption fa fa-bar-chart"
-                            style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
-                    <span id="stackedChart" onclick="selectChart('stacked', this);" class="chartoption fa fa-bar-chart-o"
-                            style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
-                    <span id="lineChart" onclick="selectChart('line', this);" class="chartoption fa fa-line-chart"
-                            style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
-                    <span id="wordcloud" onclick="selectChart('wordcloud', this);" class="chartoption fa fa-cloud"
-                            style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
-                    <span id="" class=""
-                            style="border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:black">|</span>
-                    <span style="float:right;margin-top:6px">
-                        <a href="#" data-action="fullscreen" class="orange2" onclick="fullscreen('chartMaster')">
-															<i class="ace-icon fa fa-expand"></i>
-														</a>
-                    </span>
-                </div>
-                  <div class="" id="searchNotification" style="width:100%;text-align: center;padding-top:45px">
-
-                  </div>
-                <br/>
-            </div>
+    </div> 
+    <div class="row" style="margin-left:15px">
+        <div class="windowContSeal">
+          <div class="" id="searchNotification" style="width:100%;text-align: center;">
+          </div>
         </div>
-    </div>
-      <!--
-    <div class="row" style="padding-left:7px;padding-right:7px">
-        <div class="col-sm-6">
-            <h5 style="text-align:center"><span style="font-size:12pt;font-family:Impact;">Metrics</span></h5>
-            <div class="windowContBlue">
-                <div class="row" style="width:100%;padding-left:25px">
-                    <div>
-                      <p id="metric_container" style="word-wrap: break-word;"></p>
-                    </div>
-                  </div>
-            </div>
+      <div class="windowContViolet">
+        <div class="row" style="padding:10px;width:100%;text-align:center">
+          <span style="font-size: 12pt; font-weight: bold;">Metrics</span>
         </div>
+        <div class="row" style="padding-left:25px;padding-right:25px;width:100%">
+            <div>
+              <p id="metric_container" style="word-wrap: break-word;"></p>
+            </div>
+          </div>
+      </div>
 
-        <div class="col-sm-6">
-            <h5 style="text-align:center"><span style="font-size:12pt;font-family:Impact;">Search Results</span></h5>
-            <div class="windowContBlue">
-                <div class="row" style="padding-left:25px;padding-right:25px;width:100%">
-                    <div>
-                      <p id="search_results_container" style="word-wrap: break-word;"></p>
+      <div class="windowContBlue">
+          <div class="row" style="width:100%;text-align:center">
+              <span style="font-size: 12pt; font-weight: bold;">Search Results</span>
+            </div>
+            <div class="row" style="padding-left:25px;padding-right:25px;width:100%">
+                <div>
+                  <p id="search_results_container" style="word-wrap: break-word;"></p>
+                    <!--<div class="row">
+                      <div class="col-sm-6">
+                        Type
+                      </div>
+                      <div class="col-sm-6" id="search_result_type">
+                        N/A
+                      </div>
+                    </div>-->
+                    <div class="row">
+                        <div class="col-sm-6">
+                          Ticker
+                        </div>
+                        <div class="col-sm-6" id="search_result_ticker">
+                          N/A
+                        </div>
+                      </div>
+                      <hr/>
+                      <div class="row">
+                          <div class="col-sm-6">
+                            Year
+                          </div>
+                          <div class="col-sm-6" id="search_result_year">
+                            N/A
+                          </div>
+                        </div>
+                        <hr/>
                         <div class="row">
                             <div class="col-sm-6">
-                              Ticker
+                              Quarter
                             </div>
-                            <div class="col-sm-6" id="search_result_ticker">
+                            <div class="col-sm-6" id="search_result_quarter">
                               N/A
                             </div>
                           </div>
-                          <hr/>
-                          <div class="row">
-                              <div class="col-sm-6">
-                                Year
-                              </div>
-                              <div class="col-sm-6" id="search_result_year">
-                                N/A
-                              </div>
-                            </div>
-                            <hr/>
-                            <div class="row">
-                                <div class="col-sm-6">
-                                  Quarter
-                                </div>
-                                <div class="col-sm-6" id="search_result_quarter">
-                                  N/A
-                                </div>
-                              </div>
-                    </div>
+                </div>
               </div>
+      </div>
+      <div class="windowContRed">
+        <div class=""  id="analystDiv">
+            <div class="row" style="padding:10px;width:100%;text-align:center" >
+              <span style="font-size: 12pt; font-weight: bold;">Analysts</span>
+              <span onclick="hideAnalyst()" class="	glyphicon glyphicon-link" style="float:right;color:blue;font-size:12pt"></span>
             </div>
-        </div>
-    </div>
-    <div class="row" style="padding-left:7px;padding-right:7px">
-        <div class="col-sm-6">
-            <h5 style="text-align:center"><span style="font-size:12pt;font-family:Impact;">Analysts</span></h5>
-            <div class="windowContRed">
-                <div class=""  id="analystDiv">
-                    <div class="row" style="padding-left:25px;padding-right:25px;width:100%">
-                        <div>
-                            <p id="analyst_container" style="word-wrap: break-word;"></p>
-                        </div>
-                    </div>
+            <div class="row" style="padding-left:25px;padding-right:25px;width:100%">
+                <div>
+                    <p id="analyst_container" style="word-wrap: break-word;"></p>
                 </div>
             </div>
         </div>
-
-        <div class="col-sm-6">
-            <h5 style="text-align:center"><span style="font-size:12pt;font-family:Impact;">Executives</span></h5>
-            <div class="windowContRed">
-                <div class="hide"  id="executiveDiv">
-                    <div class="row" style="padding-left:25px;padding-right:25px;width:100%">
-                        <div>
-                            <p id="executive_container" style="word-wrap: break-word;"></p>
-                        </div>
-                      </div>
-                </div>
+        <div class="hide"  id="executiveDiv">
+            <div class="row" style="padding:10px;width:100%;text-align:center" >
+              <span style="font-size: 12pt; font-weight: bold;">Executives</span>
+                <span onclick="hideExecutive()" class="	glyphicon glyphicon-link" style="float:right;color:blue;font-size:12pt"></span>
             </div>
+            <div class="row" style="padding-left:25px;padding-right:25px;width:100%">
+                <div>
+                    <p id="executive_container" style="word-wrap: break-word;"></p>
+                </div>
+              </div>
         </div>
-    </div>
-    <div class="row" style="padding-left:7px;padding-right:7px">
-
+      </div>
 
       <div class="windowContYellow">
           <div class="table-responsive" id="sentimentGrid">
@@ -266,16 +248,14 @@
               </table>
             </div>
           </div>  
-      </div>  
     </div>
-  </div>-->
+    </div>
+  </div>
   <!-- /.content-wrapper -->
 
 </div>
-</div>
 <!-- ./wrapper -->
 <input type="hidden" id="selected_option"/>
-<input type="hidden" id="chartType"/>
 
 <input type="hidden" id="searchKeyTicker"/>
 <input type="hidden" id="searchKeyAnalyst"/>
@@ -283,7 +263,6 @@
 <input type="hidden" id="searchKeyTable"/>
 <input type="hidden" id="searchKeyChart"/>
 <input type="hidden" id="searchKeyMetric"/>
-<input type="hidden" id="searchKeyWordcloud"/>
 <!-- jQuery 3 -->
 <script src="/assets/bower_components/jquery/dist/jquery.min.js"></script>
 <!-- jQuery UI 1.11.4 -->
@@ -324,28 +303,16 @@
 <script src="/assets/dist/css/jqcloud.css"></script>
 <script src="/assets/bower_components/jquery/src/d3.min.js"></script>
 <script type="text/javascript">
-
-    function fullscreen(elementId){
-        if ( $("#" + elementId).hasClass("fullscreen")){
-            $("#" + elementId).removeClass("fullscreen");
-        }else{
-         $("#" + elementId).addClass("fullscreen")
-        }
-        type = $("#chartType").val()
-        $("#chart_" + type).resize()
-    }
     function hideAnalyst(){
         $("#analystDiv").addClass("hide")
         $("#executiveDiv").removeClass("hide")
     }
-    var wordcloud_data = [];
+
     function hideExecutive(){
         $("#analystDiv").removeClass("hide")
         $("#executiveDiv").addClass("hide")
     }
-    $(window).resize(function() {
-        build_wordcloud_results(wordcloud_data)
-    });
+
   function searchChange(ctl){
     //search_text = $(ctl).val();
     //if (search_text === ""){
@@ -357,17 +324,16 @@
     //search_api_call(search_text, "table");
 
   }
-  //setInterval(search_api_analyst,500);
-  //setInterval(search_api_executive,500);
+  setInterval(search_api_analyst,500);
+  setInterval(search_api_executive,500);
 
-  //setInterval(search_api_ticker,500);
+  setInterval(search_api_ticker,500);
 
-  //setInterval(search_api_table,500);
+  setInterval(search_api_table,500);
 
   setInterval(search_api_chart,500);
-  //setInterval(search_api_wordcloud,500);
 
-  //setInterval(search_api_metric,500);
+  setInterval(search_api_metric,500);
 
 
   function search_api_ticker(){
@@ -388,31 +354,6 @@
             dataType: 'json',
             success: function(data) {
                 build_search_results(data);
-            },
-            type: 'GET'
-          });
-      }
-  }
-
-  function search_api_wordcloud(){
-      search_context = "wordcloud"
-      search_text = $('#searchBox').val();
-      if (search_text === ""){
-        search_text = "a"
-      }
-      if (search_text != $("#searchKeyWordcloud").val()){
-          $('#searchKeyWordcloud').val(search_text)
-          $.ajax({
-            url: '/search/' + search_context + '/' + search_text,
-            error: function() {
-                //$('#searchNotification').html('<p>An error has occurred</p>');
-
-            },
-            async: true,
-            dataType: 'json',
-            success: function(data) {
-                wordcloud_data = data;
-                build_wordcloud_results(data);
             },
             type: 'GET'
           });
@@ -610,44 +551,44 @@ function build_executive_results(rows){
 function build_metric_results(rows){
     temp_html = ""
     temp_html = temp_html + "<div class='row' style='margin-top:7px'>" + 
-        " <div class='col-sm-9' style='padding-top:0px;text-align:left'>Total Questions</div>" +
-        " <div class='col-sm-3' style='padding-top:0px;text-align:left'>" +
+        " <div class='col-sm-9' style='padding-top:0px;text-align:right'>Total Questions</div>" + 
+        " <div class='col-sm-3' style='padding-top:0px'>" +
         rows.metric_container.total_questions +
         ' </div>' +
         "</div>"  
     temp_html = temp_html + "<div class='row' style='margin-top:7px'>" + 
-        " <div class='col-sm-9' style='padding-top:0px;text-align:left'>Positive Questions</div>" +
-        " <div class='col-sm-3 positive' style='padding-top:0px;text-align:left'>" +
+        " <div class='col-sm-9' style='padding-top:0px;text-align:right'>Positive Questions</div>" + 
+        " <div class='col-sm-3 positive' style='padding-top:0px'>" +
         rows.metric_container.total_positive_questions +
         ' </div>' +
         "</div>"  
     temp_html = temp_html + "<div class='row' style='margin-top:7px'>" + 
-        " <div class='col-sm-6' style='padding-top:0px;text-align:left'>Negative Questions</div>" +
-        " <div class='col-sm-6 negative' style='padding-top:0px;text-align:left'>" +
+        " <div class='col-sm-9' style='padding-top:0px;text-align:right'>Negative Questions</div>" + 
+        " <div class='col-sm-3 negative' style='padding-top:0px'>" +
         rows.metric_container.total_negative_questions +
         ' </div>' +
         "</div>"  
     temp_html = temp_html + "<div class='row' style='margin-top:7px'>" + 
-        " <div class='col-sm-9' style='padding-top:0px;text-align:left'>Neutral Questions</div>" +
-        " <div class='col-sm-3 neutral' style='padding-top:0px;text-align:left'>" +
+        " <div class='col-sm-9' style='padding-top:0px;text-align:right'>Neutral Questions</div>" + 
+        " <div class='col-sm-3 neutral' style='padding-top:0px'>" +
         rows.metric_container.total_neutral_questions +
         ' </div>' +
         "</div>"
     temp_html = temp_html + "<div class='row' style='margin-top:7px'>" + 
-        " <div class='col-sm-9' style='padding-top:0px;text-align:left'>Avg Questions Per Call</div>" +
-        " <div class='col-sm-3' style='padding-top:0px;text-align:left'>" +
+        " <div class='col-sm-9' style='padding-top:0px;text-align:right'>Avg Questions Per Call</div>" + 
+        " <div class='col-sm-3' style='padding-top:0px'>" +
         rows.metric_container.average_questions +
         ' </div>' +
         "</div>"     
     temp_html = temp_html + "<div class='row' style='margin-top:7px'>" + 
-        " <div class='col-sm-9' style='padding-top:0px;text-align:left'>Number of Analysts</div>" +
-        " <div class='col-sm-3' style='padding-top:0px;text-align:left'>" +
+        " <div class='col-sm-9' style='padding-top:0px;text-align:right'>Number of Analysts</div>" + 
+        " <div class='col-sm-3' style='padding-top:0px'>" +
         rows.metric_container.total_analysts +
         ' </div>' +
         "</div>"
     temp_html = temp_html + "<div class='row' style='margin-top:7px'>" + 
-        " <div class='col-sm-9' style='padding-top:0px;text-align:left'>Avg Analysts Per Call</div>" +
-        " <div class='col-sm-3' style='padding-top:0px;text-align:left'>" +
+        " <div class='col-sm-9' style='padding-top:0px;text-align:right'>Avg Analysts Per Call</div>" + 
+        " <div class='col-sm-3' style='padding-top:0px'>" +
         rows.metric_container.average_analysts +
         ' </div>' +
         "</div>"
@@ -676,39 +617,6 @@ function build_table_grid_results(rows){
     //})
 }
 
-function build_wordcloud_results(rows){
-    width = $("#wordcloudContainer").width()
-    if ( width > 725){
-        $("#chart_wordcloud").width(672)
-    }else{
-     $("#chart_wordcloud").width(width-50)
-    }
-
-    var temp1_html = "";
-    for(i=0;i<rows.length;i++){
-        if(rows[i][1] >=10){
-
-          temp1_html = temp1_html + '<span data-weight="'+ rows[i][1]/10 +'">' + rows[i][0] +'</span>'
-        }
-    }
-    $("#chart_wordcloud").html(temp1_html);
-    $('#chart_wordcloud').awesomeCloud({
-        "size" : {
-                "grid" : 16,
-                "factor": 0,
-                "normalize" : false
-            },
-            "options" : {
-                "color" : "random-dark",
-                "rotationRatio" : 0.35,
-                "printMultiplier" : 2,
-                "sort": "highest"
-            },
-            "font" : "'Times New Roman', Times, serif",
-            "shape" : "circle"
-        });
-}
-
 function build_chart_results(rows){
     temp_html = ""
           group = rows.main_container.data
@@ -729,38 +637,29 @@ function build_chart_results(rows){
                                   '</div>' +
                                 '</div>' +
                                 '<div id="wordcloudContainer" class="chartCont" style="display:inline-block;width:100%" >' +
-                                  '<div id="chart_wordcloud" class="wordcloud chart-container1" style="display:inline-block">' +
+                                  '<div id="chart_wordcloud" class="wordcloud chart-container1">' +
                                   '</div>' +
                                 '</div>'
 
-
+      
           for(i=0;i<group.length;i++){
-             temp_html2 = ""
-             for(j=0;j<group[i].cont.length;j++){
-                 temp_html2 = temp_html2 + '<div style="display:inline-block">' +
-                                    '<span class="box-shadow2" style="text-align:center;color:black">' + group[i].cont[j]["ticker"] + '</span><div></div>' +
-                                    '<div id="chart-' + group[i].cont[j]["group"].replace(" ","-") + '" class="chart-container" style="display:inline-block">' +
-                                    '</div>'+
-                                '</div>'
-             }
-             temp_html = temp_html + '<div class="box-shadow" style="display:inline-block;">' +
-                                temp_html2 +
-                                '<div></div><span class="box-shadow1" style="text-align:center;color:black">' + group[i]["key"] + '</span>' +
-                                '</div>'
-          }
+                temp_html = temp_html + '<td>' +
+                                '<div id="chart-' + group[i]["group"].replace(" ","-") + '" class="chart-container">' +
+                                '</div>' +
+                                '<span style="text-align:center;font-style:bold;color:black">' + group[i]["group"] + '</span>' +
+                              '</td>'
+              }
               
               $('#searchNotification').html("");
-              $('#searchNotification').html('<div id="pieContainer" class="chartCont">' + temp_html + '</div>' + temp1_html);
+              $('#searchNotification').html('<table id="pieContainer" class="chartCont"><tbody>' + temp_html + '</tbody></table>' + temp1_html);
 
                 for(i=0;i<group.length;i++){
-                    for(j=0;j<group[i].cont.length;j++){
-                      //piechart(group[i]["result"], 'chart-' + group[i]["group"].replace(" ","-"));
-                      Morris.Donut({
-                        element: 'chart-' + group[i].cont[j]["group"].replace(" ","-"),
-                        data: group[i].cont[j]["result"],
-                          formatter: function (x) { return x + "%"}
-                        });
-                    }
+                  //piechart(group[i]["result"], 'chart-' + group[i]["group"].replace(" ","-"));
+                  Morris.Donut({
+                    element: 'chart-' + group[i]["group"].replace(" ","-"),
+                    data: group[i]["result"],
+                      formatter: function (x) { return x + "%"}
+                    });
                 }
 
 
@@ -772,19 +671,31 @@ function build_chart_results(rows){
                     labels: rows.main_container.y_labels,
                     hideHover: 'auto',
                     lineColors: rows.main_container.colors,
-                    barColors: rows.main_container.colors,
-                    resize:true
+                    barColors: rows.main_container.colors
                 };
                 config.element = "chart_line"
-                var lineMorris = Morris.Line(config)
+                Morris.Line(config)
                 config.element = "chart_area"
-                var areaMorris = Morris.Area(config)
+                Morris.Area(config)
                 config.element = "chart_bar"
-                var barMOrris = Morris.Bar(config)
+                Morris.Bar(config)
                 config.stacked = true;
                 config.element = "chart_stacked"
-                var stackedMorris = Morris.Bar(config)
+                Morris.Bar(config)
                 selectChart(rows.main_container["chartType"])
+                $('#chart_wordcloud').awesomeCloud({
+                "size" : {
+						"grid" : 16,
+						"normalize" : false
+					},
+					"options" : {
+						"color" : "random-dark",
+						"rotationRatio" : 0.35,
+						"printMultiplier" : 3
+					},
+					"font" : "'Times New Roman', Times, serif",
+					"shape" : "square"
+				});
     }
 
 
@@ -805,7 +716,6 @@ $('.chartoption').each(function(){
  }
 
 function selectChart(type){
-  $("#chartType").val(type)
   $('.chartoption').each(function(){
     $(this).removeClass('selectedChart');
   })
@@ -816,13 +726,6 @@ function selectChart(type){
   $('#' + type + 'Chart').addClass('selectedChart')
   $('#' + type + 'Container').removeClass('hide')
 
-  if (type === "pie"){
-
-  }else if (type === "wordcloud"){
-    search_api_wordcloud()
-  }else{
-    $('#chart_' + type).resize();
-  }
 }
 
 
@@ -907,114 +810,83 @@ function selectChart(type){
 .windowContViolet {
   background-color: #d6d6c2;
   color:black;
-  border-radius:10px;
-  height: 350px;
-  width:100%;
-  min-width:350px;
+  margin-top:20px;
+  margin-right:10px;
+  border-radius:10px; 
+  height: 250px;
+  width:25%;
+  float:left;
+  min-width:150px;
   overflow-x:hidden;
   overflow-y:auto;
-  margin-bottom:15px;
 }
 
 .windowContSeal {
   background-color: #d6d6c2;
   color:black;
+  margin-top:20px;
+  margin-right:10px;
+  padding-top:25px;
   border-radius:10px;
-  width:100%;
-  overflow-x:hidden;
+  width:55%;
+  height:250px;
+  overflow-x:auto;
   overflow-y:auto;
-  min-width:350px;
-  margin-bottom:15px;
+  min-width:200px;
+  float:left;
 }
 
 .windowContBlue {
   background-color: #d6d6c2;
   color:black;
-  border-radius:10px;
-  height:100%;
-  width:100%;
-  min-width:350px;
-  margin-bottom:15px;
+  margin-top:20px;
+  padding-top:15px;
+  padding-left:10px;
+  padding-right:10px;
+  margin-right:10px;
+  border-radius:10px; 
+  height: 250px;
+  width:16%;
+  min-width:150px;
+  float:left;
 }
 
 .windowContRed {
   background-color: #d6d6c2;
   color:black;
-  border-radius:10px;
+  margin-top:10px;
+  margin-right:10px;
+  border-radius:10px; 
   height: 450px;
-  width:100%;
-  min-width:350px;
+  width:25%;
+  float:left;
+  min-width:150px;
   overflow-x:hidden;
   overflow-y:auto;
-  margin-bottom:15px;
 }
 
 .windowContYellow {
   background-color: #d6d6c2;
   color:black;
-  border-radius:10px;
+  margin-top:10px;
+  margin-right:10px;
+  border-radius:10px; 
   height: 450px;
-  width:100%;
+  width:72%;
   overflow-x:hidden;
   overflow-y:auto;
-  min-width:350px;
-  margin-bottom:15px;
+  min-width:200px;
+  float:left;
 }
 
 .wordcloud {
-height: 3in;
+border: 1px solid #036;
+height: 7in;
+margin: 0.5in auto;
 padding: 0;
 page-break-after: always;
 page-break-inside: avoid;
 width: 7in;
-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-border-radius:15px;
-}
-
-.fullscreen {
-    position: fixed;
-    margin: 0;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: #FFF;
-    border-width: 3px;
-    z-index: 1040!important;
-    overflow-x:auto;
-    overflow-y:auto;
-}
-
-.box-shadow{
-    border-radius: 15px;
-    margin-right: 10px;
-    padding-right: 10px;
-    margin-bottom:25px;
-    padding-bottom: 10px;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-}
-
-.box-shadow1{
-    border-radius: 5px;
-    margin-left:10px;
-    font-family:Arial;
-    padding-left:5px;
-    font-style:bold;
-    padding-right:5px;
-    font-size:9pt;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-}
-
-.box-shadow2{
-    border-radius: 5px;
-    margin-left:10px;
-    margin-top:5px;
-    font-family:Arial;
-    padding-left:5px;
-    font-style:bold;
-    padding-right:5px;
-    font-size:9pt;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 </style>
 </body>

@@ -52,7 +52,6 @@ def search_results(context, code):
     year, quarter, temp, yearquarter = helpers.clean_search_text(code)
     search_response = helpers.get_search_types(code)
     search_response = search_response["hits"]
-    print(context)
     if 0 == 1:
         response = {
             "analyst_container": [],

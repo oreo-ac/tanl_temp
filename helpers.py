@@ -109,7 +109,6 @@ def clean_search_text(search_text):
 
 def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter, search_context="chart"):
     input_json = get_input_json(temp_keywords, yearquarter, search_context)
-    print(input_json)
     url = es_url + qanda_index + "_search"
     headers = {"Content-Type" : "application/json"}
     response = requests.post(url=url, data=json.dumps(input_json), headers=headers)
@@ -143,7 +142,6 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
                     "answer": question["_source"]["answer"],
                     "questionandanswer": "Q: " + question["_source"]["question"] + "<br/>   A: " + question["_source"]["answer"]
                 })
-                allquestions.append({"questions": question["_source"]["question"]})
                 #questionandanswer.append({"questionandanswer" : "Q: " + question["_source"]["question"] + "A:" + question["_source"]["answer"]})
             result = {
                 "table_container": questions
@@ -154,6 +152,14 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
         # TODO blob = TextBlob(questionText.lower())
         # TODO words = [word for word in blob.words if word not in stop_words]
         # TODO wordCloud = ([(word, len(list(filter(lambda k: word in k, words)))) for word in set(words)])
+        if search_context == "wordcloud":
+            questions_output = json.loads(response.text)["hits"]["hits"]
+            questionText = " ".join([question["_source"]["question"] for question in questions_output])
+            blob = TextBlob(questionText.lower())
+            words = [word for word in blob.words if word not in stop_words]
+            wordCloud = ([(word, len(list(filter(lambda k: word in k, words)))) for word in set(words)])
+
+            return wordCloud
 
         if search_context == "ticker":
             ticker_output = json.loads(response.text)["aggregations"]["tickerAgg"]["buckets"]
@@ -199,7 +205,6 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
                 for quarter in year["quarterAgg"]["buckets"]:
                     temp_count = temp_count + quarter["tickerAgg"]["value"]
             transcript_count = temp_count
-            print(transcript_count)
             if transcript_count > 0:
                 average_analysts = round(total_analysts/transcript_count,0)
                 average_questions = round(total_questions / transcript_count, 0)
@@ -215,7 +220,6 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
                     "average_analysts": average_analysts
                 }
             }
-            print(result)
             return result
 
         if search_context == "analyst":
@@ -270,9 +274,7 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
 
         if search_context == "executive":
             executive_output = json.loads(response.text)["aggregations"]["executiveAgg"]["buckets"]
-            print(executive_output)
             for executive in executive_output:
-                print(executive["key"])
                 positive_cnt = list(filter(lambda d: d["key"] == "positive", executive["sentimentAgg"]["buckets"]))
                 if len(positive_cnt) > 0:
                     positive_cnt = positive_cnt[0]["doc_count"]
@@ -318,10 +320,12 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
             result = {
                 "executive_container": executive_container
             }
-            print(result)
             return result
 
         if search_context == "chart":
+            ticker_output = json.loads(response.text)["aggregations"]["tickerAgg"]["buckets"]
+            for ticker in ticker_output:
+                tickers.append(ticker["key"])
             main_output = json.loads(response.text)["aggregations"]["yearAgg"]["buckets"]
             main_container = {}
             temp_container = []
@@ -408,10 +412,12 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
             y_keys = []
             y_labels = []
             colors = []
-            if len(tickers) > 1:
+            if len(tickers) > 0:
                 samples = [("positive","#00a65a"), ("negative", "#f56954"), ("neutral","#3c8dbc")]
                 for sample in samples:
                     for ticker in tickers:
+                        print("Debugger")
+                        print(ticker)
                         #y_keys = y_keys + [ticker + "-positive", ticker + "-negative", ticker + "-neutral"]
                         #y_labels =y_labels +  [ticker + "-positive", ticker + "-negative", ticker + "-neutral"]
                         #colors = colors + ["#00a65a", "#f56954", "#3c8dbc"]
@@ -430,14 +436,25 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
                         temp_dict[li["ticker"] + "-negative"] = li[li["ticker"] + "-nv_pct"]
                         temp_dict[li["ticker"] + "-neutral"] = li[li["ticker"] + "-nt_pct"]
                     temp_container1.append(temp_dict)
+
                 temp_container1 = sorted(temp_container1, key=lambda k: k['sort1'], reverse=True)
                 result_dict["data1"] = temp_container1
+
             else:
                 y_keys = ["positive", "negative", "neutral"]
                 y_labels = ["positive", "negative", "neutral"]
                 colors = ["#00a65a", "#f56954", "#3c8dbc"]
-                temp_container = sorted(temp_container, key=lambda k: k['sort1'], reverse=True)
+                temp_container = sorted(temp_container, key=lambda k: k['sort1'], reverse=False)
                 result_dict["data1"] = temp_container
+
+            group_cont = sorted(list(set([d["group1"] for d in temp_container])))
+            temp_group_cont = []
+            for group in group_cont:
+                temp_group_cont.append({
+                    "key": group,
+                    "cont": list(filter(lambda d: d["group1"] == group, temp_container))
+                })
+            temp_container = temp_group_cont
             result_dict["y_keys"] = y_keys
             result_dict["y_labels"] = y_labels
             result_dict["x_key"] = 'group1'
@@ -447,7 +464,7 @@ def get_data(cl, search_type, inp_year, inp_quarter, temp_keywords, yearquarter,
             result_dict["questions"] = allquestions
 
             main_container = result_dict
-
+            print(temp_container)
             result = {
                 "main_container": main_container
             }
@@ -478,6 +495,14 @@ def get_input_json(temp_keywords, yearquarter, search_context):
 
 
     if search_context == "table":
+        input_json = {
+            "_source": {
+                "includes": ["year", "quarter", "question", "sentiment", "company", "answer"]
+            },
+            "size": 1000,
+            "query": query_input
+        }
+    elif search_context == "wordcloud":
         input_json = {
             "_source": {
                 "includes": ["year", "quarter", "question", "sentiment", "company", "answer"]
@@ -540,6 +565,11 @@ def get_input_json(temp_keywords, yearquarter, search_context):
             "query": query_input,
             "size": 0,
             "aggs": {
+                "tickerAgg": {
+                    "terms": {
+                        "field": "ticker.keyword"
+                    }
+                },
                 "yearAgg": {
                     "terms": {
                         "field": "year.keyword"
