@@ -212,6 +212,7 @@ class ESLoader:
                             break
                         if str(type(child)) == "<class 'bs4.element.Tag'>" and len(child.contents) > 0:
                             for dataIndex in range(0, len(child.contents)):
+                                #print(child.contents[dataIndex])
                                 updateDetail = updateDetail + " " + str(child.contents[dataIndex])
                         updateIndex = updateIndex + 1
                     update = UpdateDetail()

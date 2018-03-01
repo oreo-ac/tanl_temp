@@ -45,20 +45,11 @@ def parse_main_earnings_page(startpage, endPage):
             #driver.get('https://seekingalpha.com/article/4151418-bank-montreal-bmo-q1-2018-results-earnings-call-transcript')
             response = driver.find_element_by_id("a-body").get_attribute("outerHTML")
             data = response.encode('ascii', 'ignore').decode('ascii')
-            #data = response.encode('ASCII')
-            print(link +'?part=single')
             linkParts = link.split("/")
             fileName= linkParts[len(linkParts)-1]
-            filetoWrite="success.txt"
-            try:
-                esLoader.maincall(data, fileName)
-            except:
-                print("---------------------failed-----------------------")
-                filetoWrite="failure.txt"
-            f= open(filetoWrite,"a+")
-            f.write(link+ "\r\n")
+            f= open("C:\\Users\\Selvabharathi\\Working\\extract\\"+fileName,"w+")
+            f.write(data)
             f.close()
-            #print(data)
             driver.quit()
         #return transcriptLinks
 def parse(response):
