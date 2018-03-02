@@ -299,6 +299,11 @@ class ESLoader:
         else:
             return False
 
+    def removeMiddleName(self,text):
+        removals = re.findall(r"[ ].[.][ ]", text)
+        for part in removals:
+            text = text.replace(part, " ")
+        return text 
     def get_sentiment_by_blob(self,text):
         blob = TextBlob(text)
         # determine if sentiment is positive, negative, or neutral
@@ -360,13 +365,14 @@ class ESLoader:
             else:
                 data.answer = ""
             data.exchange = summary.exchange
-            data.analyst_name = objectQA.questionedBy
+            data.analyst_name = self.removeMiddleName( objectQA.questionedBy)
             anKeys = [item for item in summary.analysts if item.name.lower() == objectQA.questionedBy.lower()]
             if (len(anKeys) > 0):
                 data.analyst_company = anKeys[0].company
             else:
                 data.analyst_company = ""
-            data.executive_name = objectQA.answeredBy
+            data.executive_name = self.removeMiddleName(objectQA.answeredBy)
+            #print(data.executive_name)
             exKeys = [item for item in summary.executies if item.name.lower() == objectQA.answeredBy.lower()]
             data.executive_company = data.company
             if (len(exKeys) > 0):

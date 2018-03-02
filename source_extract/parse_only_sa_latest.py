@@ -16,6 +16,8 @@ def parse_main_earnings_page(filePath):
     esLoader = ESLoader()
     #processed =[]
     #errored =[]
+    success =0
+    failure =0
     for file in list(set(os.listdir(filePath))):
         if file.endswith("-call-transcript"):
             file_location = os.path.join(filePath, file)
@@ -26,14 +28,18 @@ def parse_main_earnings_page(filePath):
                     #print(file_location)
                     esLoader.maincall(page, fileName)
                     #processed.append(fileName)
+                    success = success+1
                 except:
                     print("---------------------failed-----------------------")
+                    failure = failure +1
                     #error.append(fileName)
     '''for name in processed:
         shutil.move(filePath+"\\"+fileName, filePath+"\\processed\\"+fileName)
     for name in errored:
         shutil.move(filePath+"\\"+fileName, filePath+"\\error\\"+fileName)
     '''
+    print("failure: " + str(failure))
+    print("success: " + str(success))
 def parse(response):
     print(respone)
 
