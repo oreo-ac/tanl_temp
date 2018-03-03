@@ -271,7 +271,10 @@ class ESLoader:
                             index = 4
                             answer = child.string
                         elif index == 4 and child.string is not None:  # additional Answer
-                            answer = answer + " " + child.string
+                            if( answer is None):
+                                answer = child.string
+                            else:
+                                answer = answer + " " + child.string
                 currentIndex = currentIndex + 1
             if index == 5:
                 # objectQA = QA(questionedBy, question, answeredBy, answer)

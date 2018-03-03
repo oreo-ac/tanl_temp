@@ -36,7 +36,7 @@ def parse_main_earnings_page(ticker):
                 if(len(transcriptLinks)>20):
                     break
     driver.quit()
-    directory = os.path.dirname("C:\\Users\\Selvabharathi\\Working\\extract\\"+ticker+"\\")
+    directory = os.path.dirname("C:\\Users\\Selvabharathi\\Working\\extract\\")
     try:
         os.stat(directory)
     except:
@@ -47,11 +47,12 @@ def parse_main_earnings_page(ticker):
         driver.get('https://seekingalpha.com/earnings/earnings-call-transcripts')
         driver.get(link+'?part=single')       
         try:
-            response = driver.find_element_by_id("a-body").get_attribute("outerHTML")
+            el = driver.find_element_by_id("a-body")
+            response = el.get_attribute("outerHTML")
             data = response.encode('ascii', 'ignore').decode('ascii')
             linkParts = link.split("/")
             fileName= linkParts[len(linkParts)-1]
-            f= open("C:\\Users\\Selvabharathi\\Working\\extract\\"+ticker+"\\"+fileName,"w+")
+            f= open("C:\\Users\\Selvabharathi\\Working\\extract\\"+fileName,"w+")
             f.write(data)
             f.close()
         except:
@@ -71,4 +72,6 @@ def get_content_from_earnings(link):
 
 if __name__ == '__main__':
     ticker = sys.argv[1]
-    parse_main_earnings_page(ticker)
+    print(ticker)
+    for tic in ticker.split(" "):
+        parse_main_earnings_page(tic)
