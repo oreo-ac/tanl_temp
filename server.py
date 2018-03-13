@@ -8,6 +8,7 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
+
 try:
     nltk.download('stopwords')
 except Exception as e:
@@ -17,10 +18,26 @@ try:
 except Exception as e:
     pass
 
+try:
+    nltk.download('brown')
+except Exception as e:
+    pass
+
+try:
+    nltk.download('averaged_perceptron_tagger')
+except Exception as e:
+    pass
 app = Flask(__name__, static_url_path='/assets', static_folder="assets")
 cl = joblib.load('modelfile.pkl')
-
+#cl = None
 @app.route("/")
+def landing():
+    userid = ""
+    error_message = ""
+    host_url = request.headers["Host"]
+    return render_template("landing.html", **locals())
+
+@app.route("/login")
 def login():
     userid = ""
     error_message = ""
@@ -31,6 +48,12 @@ def login():
 def register():
     host_url = request.headers["Host"]
     return render_template("register.html", **locals())
+
+
+@app.route('/price', methods = ['GET'])
+def getPrice():
+    data = helpers.get_price()
+    return jsonify(data)
 
 @app.route("/main", methods=['POST'])
 def hello():
@@ -49,7 +72,7 @@ def hello():
 
 @app.route("/search/<string:context>/<string:code>/<string:querytype>", methods=['GET'])
 def search_results(context, code, querytype):
-    year, quarter, temp, yearquarter = helpers.clean_search_text(code)
+    year, quarter, temp, yearquarter, src_keywords = helpers.clean_search_text(code)
     search_response = helpers.get_search_types(code)
     search_response = search_response["hits"]
     if 0 == 1:
@@ -59,7 +82,7 @@ def search_results(context, code, querytype):
         }
 
     else:
-        response = helpers.get_data(cl, search_response, year, quarter, temp, yearquarter, context, querytype)
+        response = helpers.get_data(src_keywords, cl, search_response, year, quarter, temp, yearquarter, context, querytype)
         
     return jsonify(response)
 

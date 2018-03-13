@@ -8,6 +8,7 @@
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <!-- Bootstrap 3.3.7 -->
   <link rel="stylesheet" href="/assets/bower_components/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/bower_components/bootstrap/dist/css/bootstrap.min.css">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="/assets/bower_components/font-awesome/css/font-awesome.min.css">
   <!-- Ionicons -->
@@ -110,7 +111,7 @@
     <div class="col-sm-6" align="center" style="margin-top:5px">
         
     </div>
-    <div class="col-sm-3" style="text-align:right;color:white"><a style="color:white" onclick="location.href='/'">SignOut</a></div>
+    <div class="col-sm-3" style="text-align:right;color:white"><a style="color:white;margin-right:10px" onclick="location.reload()">Refresh</a><a style="color:white" onclick="location.href='/'">SignOut</a></div>
     
   </div>
 
@@ -122,7 +123,7 @@
       </div>
       <div class="col-sm-8">
         <input id="searchBox" type="text" name="searchText" class="form-control" placeholder="Search..."
-        onkeyup="searchChange(this);" style="border-radius:10px; margin-top:10px;width:100%" list="searchList">
+        onchange="searchChange(this);" style="border-radius:10px; margin-top:10px;width:100%" list="searchList">
         
         <div id="myDropdown" class="dropdown-content show" style="">
           
@@ -141,10 +142,12 @@
             <h5 style="text-align:center"><span style="font-size:12pt;font-family:Impact;">Charts</span></h5>
             <div class="row" style="text-align:center;margin-bottom:5px">
                 <div class="col-sm-12" style="display:inline-block">
-                    <span class="box-shadow3 box-shadow4" onclick="setQueryType('ticker', this);" >by Ticker</span>
-                    <span class="box-shadow3" onclick="setQueryType('analyst_name', this);">by Analyst</span>
-                    <span class="box-shadow3" onclick="setQueryType('executive_name', this);">by Executive</span>
-                    <span class="box-shadow3" onclick="setQueryType('stocksentiment', this);">Stock Vs Sentiment(WIP)</span>
+                    <span id="tickerQueryType" class="box-shadow3 box-shadow4" onclick="setQueryType('ticker', this);" >by Ticker</span>
+                    <span id="analystQueryType" class="box-shadow3" onclick="setQueryType('analyst_name', this);">by Analyst</span>
+                    <span id="executiveQueryType" class="box-shadow3" onclick="setQueryType('executive_name', this);">by Executive</span>
+                    <span id="stockQueryType" class="box-shadow3" onclick="setQueryType('stocksentiment', this);">Stock Vs Sentiment</span>
+                    <span id="wordcloudQueryType" class="box-shadow3" onclick="setQueryType('wordcloud', this);">WordCloud</span>
+
                 </div>
             </div>
 
@@ -161,10 +164,12 @@
                                 style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
                         <span id="lineChart" onclick="selectChart('line', this);" class="chartoption fa fa-line-chart"
                                 style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
-                        <span id="wordcloud" onclick="selectChart('wordcloud', this);" class="chartoption fa fa-cloud"
+                        <!--<span id="wordcloudChart" onclick="selectChart('wordcloud', this);" class="chartoption fa fa-cloud"
+                                style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
+                        <span id="stockChart" onclick="selectChart('stock', this);" class="chartoption fa fa-line-chart"
                                 style="cursor:pointer;border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:#cc3300"></span>
                         <span id="" class=""
-                                style="border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:black">|</span>
+                                style="border-radius:3px;margin-left:3px;margin-top:10px;font-size:14pt;color:black">|</span>-->
                     </span>
 
                     <span style="float:right;margin-top:8px;margin-right:4px">
@@ -183,16 +188,16 @@
     <div id="tableMaster"  class="row" style="padding-left:7px;padding-right:7px">
         <div class="col-sm-12">
             <h5 style="text-align:center"><span style="font-size:12pt;font-family:Impact;"></span></h5>
-              <div class="windowContYellow">
+              <div class="windowContYellow" id="windowContYellow">
                   <div class="table-responsive" id="sentimentGrid1">
-                      <table class="table grid-table">
+                      <table class="table grid-table tableBodyScroll">
                         <thead>
                           <tr>
-                            <th class="" width="5%">Year</th>
-                            <th class="" width="7%">Quarter</th>
-                            <th class="" width="15%">Company</th>
-                            <th width="60%">Question and Answer</th>
-                            <th width="20%">Category
+                            <th class='abbreviation' width="5%">Year</th>
+                            <th class='abbreviation' width="7%">Quarter</th>
+                            <th class='abbreviation' width="15%">Company</th>
+                            <th class='abbreviation' width="60%">Question and Answer</th>
+                            <th class='abbreviation' width="20%">Category
                              <span style="float:right;margin-top:8px;margin-right:4px">
                                 <a href="#" data-action="fullscreen" class="orange2" onclick="fullscreen('tableMaster')">
 															<i class="ace-icon fa fa-expand"></i>
@@ -200,7 +205,8 @@
                     </span></th>
                           </tr>
                         </thead>
-                       <tbody id="sentimentGridData"></tbody>
+
+                       <tbody id="sentimentGridData" class=""></tbody>
                       </table>
                     </div>
                   </div>
@@ -331,11 +337,15 @@
 <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
 <!-- Bootstrap 3.3.7 -->
 <script src="/assets/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <!-- Morris.js charts -->
 <script src="/assets/bower_components/raphael/raphael.min.js"></script>
 <script src="/assets/bower_components/morris.js/morris.min.js"></script>
 <!-- Sparkline -->
 <script src="/assets/bower_components/jquery-sparkline/dist/jquery.sparkline.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+
 <!-- jvectormap -->
 <script src="/assets/plugins/jvectormap/jquery-jvectormap-1.2.2.min.js"></script>
 <script src="/assets/plugins/jvectormap/jquery-jvectormap-world-mill-en.js"></script>
@@ -364,6 +374,27 @@
 <script src="/assets/dist/css/jqcloud.css"></script>
 <script src="/assets/bower_components/jquery/src/d3.min.js"></script>
 <script type="text/javascript">
+      //google.charts.load('current', {'packages':['corechart']});
+      //google.charts.setOnLoadCallback(drawVisualization);
+
+      function drawVisualization(inputData) {
+            // Some raw data (not necessarily accurate)
+            var data = google.visualization.arrayToDataTable(inputData);
+
+          var options = {
+          title : 'Monthly Coffee Production by Country',
+          vAxis: {title: 'Cups'},
+          hAxis: {title: 'Month'},
+          seriesType: 'bars',
+          series: {5: {type: 'line'}},
+          resize: true
+        };
+
+        var chart = new google.visualization.ComboChart(document.getElementById('chart_stock'));
+        chart.draw(data, options);
+    }
+
+
     function setQueryType(type, ctl){
         $('#querytype').val(type)
 
@@ -372,13 +403,23 @@
         temp = temp.replace(" sentiment by analyst","")
         temp = temp.replace(" sentiment by executive","")
         temp = temp.replace(" stock vs sentiment","")
+        temp = temp.replace(" wordcloud","")
         if (type === "stocksentiment"){
-            console.log("pass")
             $("#searchBox").val(temp + " stock vs sentiment")
+            selectChart("stock");
+            search_api_chart()
+            }
+        else if (type === "wordcloud"){
+            $("#searchBox").val(temp + " wordcloud")
+            selectChart("wordcloud")
+            //search_api_wordcloud()
         }else{
             $("#searchBox").val(temp + " sentiment by " + type.toLowerCase().replace("_name",""))
             search_api_chart()
         }
+
+
+
         $(".box-shadow3").each(function(){
             $(this).removeClass("box-shadow4")
         });
@@ -387,17 +428,28 @@
     function fullscreen(elementId){
         if ( $("#" + elementId).hasClass("fullscreen")){
             $("#" + elementId).removeClass("fullscreen");
+           if (elementId === "tableMaster"){
+            $("#windowContYellow").height(450)
+            $("#sentimentGridData").height(400)
+        }
         }else{
          $("#" + elementId).addClass("fullscreen")
+         if (elementId === "tableMaster"){
+            height = $("#tableMaster").height()
+            $("#windowContYellow").height(height-20)
+            $("#sentimentGridData").height(height-70)
+        }
         }
         type = $("#chartType").val()
         $("#chart_" + type).resize()
+
     }
     function hideAnalyst(){
         $("#analystDiv").addClass("hide")
         $("#executiveDiv").removeClass("hide")
     }
     var wordcloud_data = [];
+    var combo_data = []
     function hideExecutive(){
         $("#analystDiv").removeClass("hide")
         $("#executiveDiv").addClass("hide")
@@ -414,6 +466,8 @@
     //search_api_call(search_text, "analyst");
     //search_api_call(search_text, "chart");
     //search_api_call(search_text, "table");
+    search_api_chart()
+    search_api_table()
 
   }
   //setInterval(search_api_analyst,500);
@@ -421,9 +475,9 @@
 
   //setInterval(search_api_ticker,500);
 
-  setInterval(search_api_table,500);
+  //setInterval(search_api_table,500);
 
-  setInterval(search_api_chart,500);
+  //setInterval(search_api_chart,500);
   //setInterval(search_api_wordcloud,500);
 
   //setInterval(search_api_metric,500);
@@ -720,12 +774,12 @@ function build_table_grid_results(rows){
     $.each(rows.table_container, function(index,row){
     /*Key is the collection of the different search patterns and the value is the id*/
       temp_html = temp_html + 
-              "<tr style='height:100px'>" +
-              "   <td>" + row.year + "</td>" +
-              "   <td>" + row.quarter + "</td>" +
-              "   <td>" + row.company + "</td>" +
-              "   <td>" + row.question + "</td>" +
-              "   <td>" + row.category + "</td>" +
+              "<tr style='height:50px'>" +
+              "   <td class='abbreviation' width='5%'>" + row.year + "</td>" +
+              "   <td class='abbreviation' width='7%'>" + row.quarter + "</td>" +
+              "   <td class='abbreviation' width='15%'>" + row.company + "</td>" +
+              "   <td class='abbreviation' width='60%'>" + row.question + "</td>" +
+              "   <td class='abbreviation' width='20%'>" + row.category + "</td>" +
 
               "</tr>"    
    });
@@ -745,10 +799,12 @@ function build_wordcloud_results(rows){
     }
 
     var temp1_html = "";
+    console.log("DDDDDDDDDDDDDDDDD")
+    console.log(rows)
     for(i=0;i<rows.length;i++){
         if(rows[i][1] >=10){
 
-          temp1_html = temp1_html + '<span data-weight="'+ rows[i][1]/10 +'">' + rows[i][0] +'</span>'
+          temp1_html = temp1_html + '<span data-weight="'+ rows[i][1]*10 +'">' + rows[i][0] +'</span>'
         }
     }
     $("#chart_wordcloud").html(temp1_html);
@@ -789,7 +845,11 @@ function build_chart_results(rows){
                                   '</div>' +
                                 '</div>' +
                                 '<div id="wordcloudContainer" class="chartCont" style="display:inline-block;width:100%" >' +
-                                  '<div id="chart_wordcloud" class="wordcloud chart-container1" style="display:inline-block">' +
+                                  '<div id="chart_wordcloud" class="wordcloud chart-container1" style="display:inline-block;min-width:300px">' +
+                                  '</div>' +
+                                '</div>' +
+                                '<div id="stockContainer" class="chartCont" style="display:inline-block;width:90%" >' +
+                                  '<div id="chart_stock" class="chart-container1">' +
                                   '</div>' +
                                 '</div>'
 
@@ -844,7 +904,86 @@ function build_chart_results(rows){
                 config.stacked = true;
                 config.element = "chart_stacked"
                 var stackedMorris = Morris.Bar(config)
+                console.log(rows.main_container.sentiments)
+                Highcharts.chart('chart_stock', {
+                    chart: {
+                        zoomType: 'xy'
+                    },
+                    title: {
+                        text: 'Stock Vs Sentiment Analysis'
+                    },
+                    subtitle: {
+                        text: ''
+                    },
+                    xAxis: [{
+                        categories: rows.main_container.days,
+                        crosshair: false
+                    }],
+                    yAxis: [{ // Primary yAxis
+                        labels: {
+                            format: '{value}',
+                            style: {
+                                color: Highcharts.getOptions().colors[1]
+                            }
+                        },
+                        title: {
+                            text: 'Stock',
+                            style: {
+                                color: Highcharts.getOptions().colors[1]
+                            }
+                        }
+                    }, { // Secondary yAxis
+                        title: {
+                            text: 'Sentiment',
+                            style: {
+                                color: Highcharts.getOptions().colors[0]
+                            }
+                        },
+                        labels: {
+                            format: '{value}%',
+                            style: {
+                                color: Highcharts.getOptions().colors[0]
+                            }
+                        },
+                        opposite: true
+                    }],
+                    tooltip: {
+                        shared: true
+                    },
+                    legend: {
+                        layout: 'vertical',
+                        align: 'left',
+                        x: 15,
+                        verticalAlign: 'top',
+                        y: 2,
+                        floating: true,
+                        backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'
+                    },
+                    series: [{
+                        name: 'Sentiment Positive',
+                        type: 'column',
+                        yAxis: 1,
+                        data: rows.main_container.sentiments,
+                        tooltip: {
+                            valueSuffix: '%'
+                        }
+
+                    }, {
+                        name: 'Stock Price',
+                        type: 'line',
+                        data: rows.main_container.prices,
+                        tooltip: {
+                            valueSuffix: ''
+                        }
+                    }]
+                });
+
+                console.log(rows.main_container["chartType"])
                 selectChart(rows.main_container["chartType"])
+                $(".box-shadow3").each(function(){
+                    $(this).removeClass("box-shadow4")
+                });
+                $("#" + rows.main_container["outputQueryType"]).addClass("box-shadow4")
     }
 
 
@@ -894,7 +1033,6 @@ function selectChart(type){
 }
 
 .abbreviation{
-   width:100%;
    overflow: hidden;
    text-overflow: ellipsis;
 }
@@ -981,6 +1119,7 @@ function selectChart(type){
   color:black;
   border-radius:10px;
   width:100%;
+  //min-height:350px;
   overflow-x:hidden;
   overflow-y:auto;
   min-width:350px;
@@ -1014,12 +1153,23 @@ function selectChart(type){
   color:black;
   border-radius:10px;
   min-height: 450px;
-  max-height:800px;
+    height:450px;
   width:100%;
-  overflow-x:hidden;
-  overflow-y:auto;
+  //overflow-x:hidden;
+  //overflow-y:auto;
   min-width:350px;
   margin-bottom:15px;
+}
+
+.tableBodyScroll tbody {
+display:block;
+height:400px;
+overflow-y:scroll;
+}
+.tableBodyScroll thead, tbody tr {
+display:table;
+width:100%;
+table-layout:fixed;
 }
 
 .wordcloud {
@@ -1081,7 +1231,7 @@ border-radius:15px;
 .box-shadow3{
     border-radius: 5px;
     margin-left:10px;
-    margin-top:5px;
+    margin-top:15px;
     font-family:Arial;
     padding-left:5px;
     font-style:bold;

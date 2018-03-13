@@ -5,14 +5,14 @@ from textblob.classifiers import NaiveBayesClassifier
 from sklearn.externals import joblib
 
 es_url = "https://search-tanl-nswk7nthqjskczmapaqzga3c2q.us-east-1.es.amazonaws.com/"
-search_type_index = "train/question/"
+search_type_index = "train/data/"
 
 def get_train_data():
     url = es_url + search_type_index + "_search" 
     response = requests.get(url=url)
     if str(response.status_code) == "200":
         results = json.loads(response.text)["hits"]["hits"]
-        results = [(d["_source"]["question"], d["_source"]["category"]) for d in results]
+        results = [(d["_source"]["question"] + d["_source"]["answer"], d["_source"]["category"]) for d in results]
     else:
         results = []
     return results
